@@ -143,14 +143,6 @@ body {
 
 .download-btn:hover { background: #1a1a1a; border-color: #2a2a2a; }
 
-.download-btn.primary {
-  background: var(--green);
-  border-color: var(--green);
-  color: #fff;
-}
-
-.download-btn.primary:hover { background: #15803d; }
-
 .version-badge {
   display: inline-block;
   font-size: 13px;

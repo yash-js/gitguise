@@ -46,18 +46,29 @@ async function getBestReleaseForDownloads() {
   return candidates[0] || candidates[1] || null;
 }
 
+function deriveDisplayVersion(release) {
+  const tag = release?.tag_name || '';
+  // Prefer a clean semver tag like "v0.2.1".
+  if (/^v?\d+\.\d+\.\d+/.test(tag)) return tag.startsWith('v') ? tag : `v${tag}`;
+  // Otherwise try to parse a version out of the release name (e.g. "GitGuise v0.2.0 (edge-...)").
+  const m = (release?.name || '').match(/v?\d+\.\d+\.\d+/);
+  if (m) return m[0].startsWith('v') ? m[0] : `v${m[0]}`;
+  return '';
+}
+
 getBestReleaseForDownloads()
   .then((release) => {
     if (!release) throw new Error('no release');
 
-    const version = release?.tag_name;
-    if (!version) return;
+    const version = deriveDisplayVersion(release);
 
-    document.querySelectorAll('.version-badge').forEach((el) => {
-      el.textContent = el.textContent.includes('free')
-        ? `${version} — free & open source`
-        : version;
-    });
+    if (version) {
+      document.querySelectorAll('.version-badge').forEach((el) => {
+        el.textContent = el.textContent.includes('free')
+          ? `${version} — free & open source`
+          : version;
+      });
+    }
 
     const windowsUrl = pickAssetUrl(release.assets, (a) => a?.name?.endsWith('.exe'));
     const macUrl = pickAssetUrl(release.assets, (a) => a?.name?.endsWith('.dmg'));
@@ -85,21 +96,6 @@ getBestReleaseForDownloads()
     document.querySelectorAll('.download-btn').forEach((btn) => {
       if (!btn.href || btn.getAttribute('href') === '#') btn.href = releasesUrl;
     });
-
-    const ua = navigator.userAgent;
-    const primaryId = ua.includes('Win')
-      ? 'btn-windows-2'
-      : ua.includes('Mac')
-        ? 'btn-mac-2'
-        : ua.includes('Linux')
-          ? 'btn-linux-2'
-          : null;
-    if (primaryId) {
-      const el = document.getElementById(primaryId);
-      if (el && el.href && !el.href.endsWith('#') && el.href !== releasesUrl) {
-        el.classList.add('primary');
-      }
-    }
   })
   .catch(() => {
     document.querySelectorAll('.download-btn').forEach((btn) => {
