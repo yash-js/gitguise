@@ -54,7 +54,7 @@ jobs:
         working-directory: app
 
       - name: Self-sign installer when no cert provided
-        if: ${{ secrets.WINDOWS_PFX_BASE64 == '' }}
+        if: ${{ !secrets.WINDOWS_PFX_BASE64 }}
         shell: pwsh
         working-directory: app
         run: |
