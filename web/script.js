@@ -64,9 +64,8 @@ getBestReleaseForDownloads()
 
     if (version) {
       document.querySelectorAll('.version-badge').forEach((el) => {
-        el.textContent = el.textContent.includes('free')
-          ? `${version} — free & open source`
-          : version;
+        // Hero badge stays "free & open source"; only version-only badges get the tag.
+        if (!el.textContent.includes('free')) el.textContent = version;
       });
     }
 
