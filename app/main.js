@@ -201,6 +201,75 @@ function detectSystemProfiles() {
   return { globalName, globalEmail, profiles };
 }
 
+function escapeGitValue(value) {
+  return String(value ?? '').replace(/"/g, '\\"');
+}
+
+function tryGetGlobalGitConfig(key) {
+  try {
+    return execSync(`git config --global ${key}`, { encoding: 'utf8' }).trim();
+  } catch {
+    return '';
+  }
+}
+
+function trySetGlobalGitConfig(key, value) {
+  try {
+    execSync(`git config --global ${key} "${escapeGitValue(value)}"`, { stdio: 'pipe' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function ensureGlobalGitIdentity(profiles) {
+  const existingEmail = tryGetGlobalGitConfig('user.email');
+  const existingName = tryGetGlobalGitConfig('user.name');
+  if (existingEmail && existingName) return false;
+
+  const normalized = (profiles || []).map(hooksLib.normalizeProfile);
+  const preferred =
+    normalized.find((p) => p.isDefault) ||
+    normalized.find((p) => p.source === 'git-global') ||
+    normalized.find((p) => p.email) ||
+    null;
+  if (!preferred) return false;
+
+  let changed = false;
+  if (!existingEmail && preferred.email) changed = trySetGlobalGitConfig('user.email', preferred.email) || changed;
+  if (!existingName) changed = trySetGlobalGitConfig('user.name', preferred.githubUsername || preferred.displayName) || changed;
+  return changed;
+}
+
+function ensureHooksAppliedIfNeeded() {
+  try {
+    const settings = store.get('settings');
+    const profiles = store.get('profiles', []);
+    if (!profiles.length) return;
+
+    const desired = {
+      prePush: settings?.hooks?.prePush !== false,
+      gitInit: settings?.hooks?.gitInit !== false,
+      gitRemoteAdd: settings?.hooks?.gitRemoteAdd !== false,
+    };
+
+    const status = hooksLib.getHooksStatus();
+    const missing =
+      (desired.prePush && !status.prePush) ||
+      (desired.gitInit && !status.gitInit) ||
+      (desired.gitRemoteAdd && !status.gitRemoteAdd);
+
+    // If hooks were ever applied before (or are currently missing), keep them in sync silently.
+    if (store.get('hooksLastAppliedAt') || missing) {
+      hooksLib.writeHooks(profiles, settings);
+      store.set('hooksStale', false);
+      store.set('hooksLastAppliedAt', new Date().toISOString());
+    }
+  } catch {
+    /* best-effort */
+  }
+}
+
 function getPlatformInfo() {
   const isWindows = process.platform === 'win32';
   const isMac = process.platform === 'darwin';
@@ -858,6 +927,32 @@ function getRepoInfo(repoPath) {
 }
 
 app.whenReady().then(() => {
+  // On startup, best-effort: make sure detected profiles can work immediately.
+  // - Ensure global git identity exists (only if missing)
+  // - Ensure hooks/wrappers are applied if configured
+  try {
+    const detected = detectSystemProfiles()?.profiles || [];
+    if (detected.length) {
+      const existing = store.get('profiles', []);
+      const merged = [...existing];
+      for (const d of detected) {
+        const match = merged.find((e) =>
+          (d.email && e.email === d.email) ||
+          (d.sshHostAlias && e.sshHostAlias === d.sshHostAlias));
+        if (match) {
+          if (d.githubUsername && !match.githubUsername) match.githubUsername = d.githubUsername;
+        } else {
+          merged.push(d);
+        }
+      }
+      store.set('profiles', merged.map(hooksLib.normalizeProfile));
+    }
+    ensureGlobalGitIdentity(store.get('profiles', []));
+    ensureHooksAppliedIfNeeded();
+  } catch {
+    /* best-effort */
+  }
+
   registerIpcHandlers();
   createWindow();
 

@@ -159,12 +159,15 @@ body {
 }
 
 .hero-screenshot {
-  max-width: 800px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
 .hero-screenshot img {
   width: 100%;
+  height: auto;
+  object-fit: contain;
+  aspect-ratio: 3 / 2;
   border-radius: 12px;
   border: 1px solid var(--border);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
@@ -400,5 +403,6 @@ section h2 {
 
   .nav-links { gap: 16px; }
   .hero { padding: 48px 0 32px; }
+  .hero-screenshot { max-width: 100%; }
   section { padding: 48px 0; }
 }

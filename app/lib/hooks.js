@@ -13,6 +13,8 @@ const LABEL_COLORS = {
 const GITGUISE_START = '# GitGuise:start';
 const GITGUISE_END = '# GitGuise:end';
 const PRE_PUSH_PATH = path.join(os.homedir(), '.git-hooks', 'pre-push');
+const POWERSHELL_START = '# GitGuise:pwsh:start';
+const POWERSHELL_END = '# GitGuise:pwsh:end';
 
 function getColorForLabel(label) {
   return LABEL_COLORS[label] || LABEL_COLORS.other;
@@ -237,6 +239,7 @@ ${initCases}
 
   let remoteBlock = '';
   if (gitRemoteAdd) {
+    const defaultIndex = profiles.findIndex((p) => p.isDefault);
     const remoteMenu = profiles
       .map((p, i) => `        echo "  ${i + 1}) ${p.displayName} (${p.email})"`)
       .join('\n');
@@ -262,10 +265,17 @@ ${initCases}
     if echo "$url" | grep -q "https://github.com/"; then
       OWNER=$(echo "$url" | sed 's|https://github.com/||' | cut -d'/' -f1)
       REPO=$(echo "$url" | sed 's|https://github.com/||' | cut -d'/' -f2 | sed 's/.git//')
-      echo ""
-      echo "  GitGuise — Choose profile for remote:"
+      # If there's only one profile (or a default), avoid prompting.
+      if [ "${profiles.length}" -eq 1 ]; then
+        gm_choice="1"
+      ${defaultIndex >= 0 ? `elif [ "${defaultIndex + 1}" -ge 1 ]; then
+        gm_choice="${defaultIndex + 1}"` : ''}
+      else
+        echo ""
+        echo "  GitGuise — Choose profile for remote:"
 ${remoteMenu}
-      read -p "  Choose: " gm_choice
+        read -p "  Choose: " gm_choice
+      fi
       case "$gm_choice" in
 ${remoteCases}
         *) command git remote add "$rname" "$url";;
@@ -286,6 +296,80 @@ ${remoteBlock}
 ${GITGUISE_END}`;
 }
 
+function generatePowerShellGitWrapper(profiles, options = {}) {
+  const { gitRemoteAdd = true } = options;
+  if (!gitRemoteAdd) return '';
+
+  const defaultIndex = profiles.findIndex((p) => p.isDefault);
+
+  const profileTable = profiles
+    .map((p) => {
+      const safe = (s) => String(s || '').replace(/`/g, '``').replace(/"/g, '""');
+      return `@{ displayName="${safe(p.displayName)}"; email="${safe(p.email)}"; name="${safe(p.githubUsername || p.displayName)}"; alias="${safe(p.sshHostAlias)}"; username="${safe(p.githubUsername)}"; isDefault=${p.isDefault ? '$true' : '$false'} }`;
+    })
+    .join(',\n    ');
+
+  return `${POWERSHELL_START}
+function git {
+  param(
+    [Parameter(ValueFromRemainingArguments = $true)]
+    [string[]] $gmArgs
+  )
+
+  $profiles = @(
+    ${profileTable}
+  )
+
+  if ($gmArgs.Length -ge 4 -and $gmArgs[0] -eq 'remote' -and $gmArgs[1] -eq 'add') {
+    $rname = $gmArgs[2]
+    $url = $gmArgs[3]
+
+    if ($url -match '^https://github\\.com/([^/]+)/([^/]+?)(\\.git)?$') {
+      $repo = $Matches[2]
+
+      $choice = $null
+      if ($profiles.Count -eq 1) {
+        $choice = 0
+      } elseif (${defaultIndex >= 0 ? '$true' : '$false'}) {
+        $choice = ${defaultIndex >= 0 ? defaultIndex : 0}
+      } else {
+        Write-Host \"\"
+        Write-Host \"  GitGuise — Choose profile for remote:\"
+        for ($i = 0; $i -lt $profiles.Count; $i++) {
+          $p = $profiles[$i]
+          Write-Host (\"  {0}) {1} ({2})\" -f ($i + 1), $p.displayName, $p.email)
+        }
+        $resp = Read-Host \"  Choose\"
+        if ($resp -match '^\\d+$') {
+          $n = [int]$resp
+          if ($n -ge 1 -and $n -le $profiles.Count) { $choice = $n - 1 }
+        }
+      }
+
+      if ($choice -ne $null) {
+        $p = $profiles[$choice]
+
+        & git.exe config user.email $p.email | Out-Null
+        & git.exe config user.name $p.name | Out-Null
+
+        $newUrl = \"git@{0}:{1}/{2}.git\" -f $p.alias, $p.username, $repo
+        $has = $false
+        try { & git.exe remote get-url $rname | Out-Null; $has = $true } catch {}
+
+        if ($has) { & git.exe remote set-url $rname $newUrl | Out-Null }
+        else { & git.exe remote add $rname $newUrl | Out-Null }
+
+        Write-Host (\"  ✓ Remote set to {0}\" -f $newUrl)
+        return
+      }
+    }
+  }
+
+  & git.exe @gmArgs
+}
+${POWERSHELL_END}`;
+}
+
 function stripGitGuiseBlock(content) {
   if (!content) return '';
   const startIdx = content.indexOf(GITGUISE_START);
@@ -295,6 +379,23 @@ function stripGitGuiseBlock(content) {
   const before = content.slice(0, startIdx).trimEnd();
   const after = content.slice(endIdx + GITGUISE_END.length).trimStart();
   return [before, after].filter(Boolean).join('\n\n');
+}
+
+function stripPowerShellBlock(content) {
+  if (!content) return '';
+  const startIdx = content.indexOf(POWERSHELL_START);
+  if (startIdx === -1) return content;
+  const endIdx = content.indexOf(POWERSHELL_END);
+  if (endIdx === -1) return content.slice(0, startIdx).trimEnd();
+  const before = content.slice(0, startIdx).trimEnd();
+  const after = content.slice(endIdx + POWERSHELL_END.length).trimStart();
+  return [before, after].filter(Boolean).join('\r\n\r\n');
+}
+
+function appendPowerShellBlock(content, block) {
+  const stripped = stripPowerShellBlock(content || '');
+  const prefix = stripped ? stripped + '\r\n\r\n' : '';
+  return prefix + block + '\r\n';
 }
 
 function appendGitGuiseBlock(shellContent, block) {
@@ -311,6 +412,9 @@ function getHooksPreview(profiles, settings) {
       gitInit: hookSettings.gitInit !== false,
       gitRemoteAdd: hookSettings.gitRemoteAdd !== false,
     }),
+    powerShellWrapper: generatePowerShellGitWrapper(profiles, {
+      gitRemoteAdd: hookSettings.gitRemoteAdd !== false,
+    }),
   };
 }
 
@@ -319,6 +423,7 @@ function getHooksStatus() {
   let prePush = false;
   let gitInit = false;
   let gitRemoteAdd = false;
+  let powerShellWrapper = false;
 
   if (fs.existsSync(PRE_PUSH_PATH)) {
     prePush = true;
@@ -336,7 +441,32 @@ function getHooksStatus() {
     }
   }
 
-  return { prePush, gitInit, gitRemoteAdd };
+  if (process.platform === 'win32') {
+    const home = os.homedir();
+    const candidates = [
+      path.join(home, 'Documents', 'PowerShell', 'Microsoft.PowerShell_profile.ps1'),
+      path.join(home, 'Documents', 'WindowsPowerShell', 'Microsoft.PowerShell_profile.ps1'),
+    ];
+    for (const p of candidates) {
+      if (!fs.existsSync(p)) continue;
+      try {
+        const content = fs.readFileSync(p, 'utf8');
+        if (content.includes(POWERSHELL_START)) {
+          powerShellWrapper = true;
+          break;
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    // On Windows we consider git wrapper "installed" only if PowerShell is wired too.
+    if (!powerShellWrapper) {
+      gitInit = false;
+      gitRemoteAdd = false;
+    }
+  }
+
+  return { prePush, gitInit, gitRemoteAdd, powerShellWrapper };
 }
 
 function getShellConfigFile() {
@@ -381,6 +511,20 @@ function writeHooks(profiles, settings) {
     const updated = appendGitGuiseBlock(shellContent, preview.shellWrapper);
     fs.writeFileSync(shellConfigFile, updated);
     written.push(shellConfigFile);
+
+    if (process.platform === 'win32') {
+      const home = os.homedir();
+      const psProfile = path.join(home, 'Documents', 'PowerShell', 'Microsoft.PowerShell_profile.ps1');
+      const winPsProfile = path.join(home, 'Documents', 'WindowsPowerShell', 'Microsoft.PowerShell_profile.ps1');
+      const target = fs.existsSync(winPsProfile) ? winPsProfile : psProfile;
+      const dir = path.dirname(target);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      let psContent = '';
+      if (fs.existsSync(target)) psContent = fs.readFileSync(target, 'utf8');
+      const psUpdated = appendPowerShellBlock(psContent, preview.powerShellWrapper);
+      fs.writeFileSync(target, psUpdated);
+      written.push(target);
+    }
   }
 
   return written;
@@ -403,6 +547,26 @@ function removeHooks() {
     }
   }
 
+  if (process.platform === 'win32') {
+    const home = os.homedir();
+    const candidates = [
+      path.join(home, 'Documents', 'PowerShell', 'Microsoft.PowerShell_profile.ps1'),
+      path.join(home, 'Documents', 'WindowsPowerShell', 'Microsoft.PowerShell_profile.ps1'),
+    ];
+    for (const p of candidates) {
+      if (!fs.existsSync(p)) continue;
+      try {
+        const content = fs.readFileSync(p, 'utf8');
+        if (content.includes(POWERSHELL_START)) {
+          fs.writeFileSync(p, stripPowerShellBlock(content) + '\r\n');
+          removed.push(p);
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+
   return removed;
 }
 
@@ -411,6 +575,8 @@ module.exports = {
   GITGUISE_START,
   GITGUISE_END,
   PRE_PUSH_PATH,
+  POWERSHELL_START,
+  POWERSHELL_END,
   getColorForLabel,
   normalizeProfile,
   deriveSshKeyName,
@@ -421,6 +587,7 @@ module.exports = {
   removeSshConfigBlock,
   generatePrePushHook,
   generateGitWrapper,
+  generatePowerShellGitWrapper,
   getHooksPreview,
   getHooksStatus,
   getShellConfigFile,
