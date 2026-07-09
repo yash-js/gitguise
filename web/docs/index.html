@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitGuise Docs — Terminal workflows</title>
+  <meta name="description" content="GitGuise documentation — terminal-first workflows after setup: SSH host aliases, hooks behavior, common git commands, and troubleshooting.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+  <style>
+    .doc-shell { padding: 56px 0; }
+    .doc-header { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:24px; }
+    .doc-title { font-size: 34px; line-height: 1.2; letter-spacing: -0.02em; }
+    .doc-sub { color: var(--text-muted); margin-top: 8px; max-width: 70ch; }
+    .doc-grid { display:grid; grid-template-columns: 280px 1fr; gap: 24px; margin-top: 28px; }
+    .doc-nav { position: sticky; top: 88px; align-self:start; border:1px solid var(--border); background: var(--surface); border-radius: 12px; padding: 14px; }
+    .doc-nav a { display:block; padding: 8px 10px; border-radius: 8px; color: var(--text-muted); text-decoration:none; font-size: 14px; }
+    .doc-nav a:hover { background:#1a1a1a; color: var(--text); }
+    .doc-nav a.active { background:#1a1a1a; color: var(--text); border-left: 3px solid var(--green); padding-left: 7px; }
+    .doc-card { border:1px solid var(--border); background: var(--surface); border-radius: 12px; padding: 18px; margin-bottom: 14px; }
+    .doc-card h2 { text-align:left; margin:0 0 10px; font-size: 18px; }
+    .doc-card p { color: var(--text-muted); margin-bottom: 10px; }
+    .doc-card ul { margin-left: 18px; color: var(--text-muted); }
+    .doc-card li { margin: 6px 0; }
+    .kbd { font-family: 'JetBrains Mono', monospace; font-size: 12px; background:#0f0f0f; border:1px solid var(--border); padding: 2px 6px; border-radius: 6px; color: var(--text); }
+    .code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background:#0f0f0f; border:1px solid var(--border); padding: 10px 12px; border-radius: 10px; color: var(--text); overflow:auto; }
+    .note { border-left: 3px solid var(--green); padding: 10px 12px; background:#0f1410; border-radius: 10px; color: var(--text-muted); }
+    @media (max-width: 900px) { .doc-grid { grid-template-columns: 1fr; } .doc-nav { position: static; } }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">
+        <img src="../public/logo-navbar.svg" alt="GitGuise" height="40" />
+      </a>
+      <div class="nav-links">
+        <a href="/#features">Features</a>
+        <a href="/#download">Download</a>
+        <a href="https://github.com/yash-js/gitguise" class="github-link" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="doc-shell">
+    <div class="container">
+      <div class="doc-header">
+        <div>
+          <h1 class="doc-title">Docs</h1>
+          <p class="doc-sub">Terminal-first workflows after setup: SSH aliases, hooks, commands, and troubleshooting.</p>
+        </div>
+        <a class="download-btn" href="/">← Back to home</a>
+      </div>
+
+      <div class="doc-grid">
+        <aside class="doc-nav">
+          <a href="#what-changed">What changed on your machine</a>
+          <a href="#add-profile">Add a profile</a>
+          <a href="#ssh-aliases">SSH host aliases</a>
+          <a href="#clone">Cloning repos (SSH)</a>
+          <a href="#existing-repos">Existing repos: check & fix remotes</a>
+          <a href="#push">Push flow (auto-detect)</a>
+          <a href="#init-remote-add">git init & git remote add</a>
+          <a href="#disable">Disable / remove hooks</a>
+          <a href="#verify">Verify setup</a>
+          <a href="#troubleshooting">Troubleshooting</a>
+        </aside>
+
+        <main>
+          <div class="doc-card" id="what-changed">
+            <h2>What changed on your machine</h2>
+            <p>After setup, GitGuise configures your system so you can work from the terminal without thinking about accounts.</p>
+            <ul>
+              <li><strong>SSH keys</strong> are generated per profile in <span class="kbd">~/.ssh/</span></li>
+              <li><strong>SSH config</strong> adds one <span class="kbd">Host</span> alias per profile in <span class="kbd">~/.ssh/config</span></li>
+              <li><strong>Hooks / wrappers</strong> (if enabled) are installed so git commands can auto-select the right identity</li>
+            </ul>
+            <div class="note">You can keep using your normal terminal. GitGuise just makes the SSH identity + git config consistent.</div>
+          </div>
+
+          <div class="doc-card" id="add-profile">
+            <h2>Add a profile</h2>
+            <p>When you save a profile, GitGuise does the system setup automatically:</p>
+            <ul>
+              <li><strong>Generates an SSH key</strong> (if missing) at <span class="kbd">~/.ssh/id_ed25519_&lt;label&gt;</span></li>
+              <li><strong>Writes an SSH Host alias</strong> into <span class="kbd">~/.ssh/config</span> (for example <span class="kbd">github-work</span>)</li>
+              <li><strong>Copies the public key</strong> and shows a guided “Add SSH key” step (GitHub / GitLab / Bitbucket)</li>
+            </ul>
+            <p>The only manual step is adding that public key to your Git provider:</p>
+            <ul>
+              <li><strong>GitHub</strong>: <a href="https://github.com/settings/ssh/new" target="_blank" rel="noopener">github.com/settings/ssh/new</a></li>
+              <li><strong>GitLab</strong>: <a href="https://gitlab.com/-/user_settings/ssh_keys" target="_blank" rel="noopener">gitlab.com/-/user_settings/ssh_keys</a></li>
+              <li><strong>Bitbucket</strong>: <a href="https://bitbucket.org/account/settings/ssh-keys/" target="_blank" rel="noopener">bitbucket.org/account/settings/ssh-keys/</a></li>
+            </ul>
+            <p>Then verify from your terminal:</p>
+            <div class="code">ssh -T git@github.com\nssh -T git@gitlab.com\nssh -T git@bitbucket.org</div>
+          </div>
+
+          <div class="doc-card" id="ssh-aliases">
+            <h2>SSH host aliases</h2>
+            <p>GitGuise uses SSH aliases like <span class="kbd">github-work</span> or <span class="kbd">github-personal</span>. Each alias maps to a specific key.</p>
+            <div class="code"># Example block in ~/.ssh/config\nHost github-work\n  HostName github.com\n  User git\n  IdentityFile ~/.ssh/id_ed25519_work</div>
+            <p>These aliases are the “secret sauce” behind consistent identity selection.</p>
+          </div>
+
+          <div class="doc-card" id="clone">
+            <h2>Cloning repos (SSH)</h2>
+            <p>Clone using the profile alias format:</p>
+            <div class="code">git clone git@github-work:your-work-username/repo.git\n# or\ngit clone git@github-personal:your-personal-username/repo.git</div>
+            <p>If you have a HTTPS URL, convert it by replacing the host:</p>
+            <div class="code">https://github.com/OWNER/REPO.git\n→\ngit@github-work:OWNER/REPO.git</div>
+          </div>
+
+          <div class="doc-card" id="existing-repos">
+            <h2>Existing repos: check & fix remotes</h2>
+            <p>Check what your repo is using:</p>
+            <div class="code">git remote -v\ngit config user.email\ngit config user.name</div>
+            <p>Fix the remote to use an alias:</p>
+            <div class="code">git remote set-url origin git@github-work:OWNER/REPO.git</div>
+            <p>Set identity for that repo (local config):</p>
+            <div class="code">git config user.email \"yash@company.com\"\ngit config user.name \"your-github-username\"</div>
+          </div>
+
+          <div class="doc-card" id="push">
+            <h2>Push flow (auto-detect)</h2>
+            <p>If the <strong>Auto-detect on push</strong> hook is enabled, it will:</p>
+            <ul>
+              <li>Read your repo’s <span class="kbd">origin</span> remote</li>
+              <li>If it contains a known alias (e.g. <span class="kbd">github-work</span>), GitGuise ensures the right <span class="kbd">user.email</span>/<span class="kbd">user.name</span> is set</li>
+              <li>If the remote is HTTPS or unknown, it shows an interactive selector in the terminal</li>
+            </ul>
+            <div class="code">git push</div>
+          </div>
+
+          <div class="doc-card" id="init-remote-add">
+            <h2>git init & git remote add</h2>
+            <p>If enabled, GitGuise wraps these commands:</p>
+            <ul>
+              <li><strong>git init</strong>: prompts which identity the repo belongs to, then sets local git config</li>
+              <li><strong>git remote add</strong>: if you paste a GitHub HTTPS URL, it can convert it into the correct SSH alias format</li>
+            </ul>
+            <div class="code">git init\n\ngit remote add origin https://github.com/OWNER/REPO.git</div>
+          </div>
+
+          <div class="doc-card" id="disable">
+            <h2>Disable / remove hooks</h2>
+            <p>Open GitGuise → Settings → Hooks.</p>
+            <ul>
+              <li>Turn toggles off, then click <span class="kbd">Re-apply hooks</span></li>
+              <li>Or click <span class="kbd">Remove all hooks</span> to fully uninstall</li>
+            </ul>
+          </div>
+
+          <div class="doc-card" id="verify">
+            <h2>Verify setup</h2>
+            <p>Test SSH for a profile alias:</p>
+            <div class="code">ssh -T git@github-work</div>
+            <p>Expected output includes: <span class="kbd">You've successfully authenticated</span> (or a “Hi …” message).</p>
+            <p>Verify a repo uses the right alias:</p>
+            <div class="code">git remote get-url origin\n# should start with: git@github-...</div>
+          </div>
+
+          <div class="doc-card" id="troubleshooting">
+            <h2>Troubleshooting</h2>
+            <p><strong>Windows:</strong> GitGuise requires Git for Windows (Git Bash) to run shell commands. Install from:</p>
+            <div class="code">https://git-scm.com/download/win</div>
+            <p style="margin-top:10px"><strong>SSH issues:</strong> ensure your public key is added to GitHub and that <span class="kbd">ssh -T git@&lt;alias&gt;</span> succeeds.</p>
+            <p style="margin-top:10px"><strong>Wrong account on push:</strong> confirm your remote is using the expected alias:</p>
+            <div class="code">git remote get-url origin</div>
+            <p style="margin-top:10px"><strong>Fallback selector keeps appearing:</strong> your remote may be HTTPS. Convert it:</p>
+            <div class="code">git remote set-url origin git@github-work:OWNER/REPO.git</div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </section>
+</body>
+
+<script>
+  (function () {
+    const nav = document.querySelector('.doc-nav');
+    if (!nav) return;
+    const links = Array.from(nav.querySelectorAll('a[href^="#"]'));
+    const sections = links
+      .map((a) => document.getElementById((a.getAttribute('href') || '').slice(1)))
+      .filter(Boolean);
+
+    function setActive(id) {
+      links.forEach((a) => a.classList.toggle('active', a.getAttribute('href') === `#${id}`));
+    }
+
+    // Initial active state (hash or first section)
+    const initial = (location.hash || '').slice(1);
+    if (initial && document.getElementById(initial)) setActive(initial);
+    else if (sections[0]) setActive(sections[0].id);
+
+    // Click: smooth scroll + set active immediately
+    nav.addEventListener('click', (e) => {
+      const a = e.target.closest('a');
+      if (!a) return;
+      const id = (a.getAttribute('href') || '').slice(1);
+      const el = id ? document.getElementById(id) : null;
+      if (!el) return;
+      e.preventDefault();
+      history.replaceState(null, '', `#${id}`);
+      setActive(id);
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    let raf = 0;
+    function onScroll() {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        if (!sections.length) return;
+
+        const atBottom = (window.scrollY + window.innerHeight) >= (document.documentElement.scrollHeight - 2);
+        if (atBottom) {
+          setActive(sections[sections.length - 1].id);
+          return;
+        }
+
+        const anchorY = 140; // pixels from top of viewport
+        let currentId = sections[0].id;
+        for (const sec of sections) {
+          const r = sec.getBoundingClientRect();
+          if (r.top <= anchorY) currentId = sec.id;
+          else break;
+        }
+        setActive(currentId);
+      });
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('hashchange', () => {
+      const id = (location.hash || '').slice(1);
+      if (id && document.getElementById(id)) setActive(id);
+    });
+    onScroll();
+  })();
+</script>
+</html>
+

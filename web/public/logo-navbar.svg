@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="40" viewBox="0 0 160 40">
+  <!-- Domino mask icon -->
+  <g transform="translate(20, 20)">
+    <rect x="-14" y="-10" width="28" height="20" rx="10" fill="#ffffff"/>
+    <ellipse cx="-5.5" cy="0" rx="5" ry="4" fill="#0a0a0a"/>
+    <ellipse cx="5.5" cy="0" rx="5" ry="4" fill="#0a0a0a"/>
+    <path d="M-3.5 10 L0 15.5 L3.5 10Z" fill="#ffffff"/>
+  </g>
+  <!-- Wordmark -->
+  <text
+    x="44"
+    y="25"
+    font-family="Inter,'Helvetica Neue',Arial,sans-serif"
+    font-size="18"
+    font-weight="700"
+    fill="#ffffff"
+    letter-spacing="-0.5"
+  >GitGuise</text>
+</svg>

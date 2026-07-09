@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src https://fonts.gstatic.com https://cdn.jsdelivr.net; script-src 'self' https://cdn.jsdelivr.net; img-src 'self' data:;">
+  <title>GitGuise</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/wizard.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+  <!-- Custom titlebar (Windows/Linux) -->
+  <div id="titlebar" class="titlebar hidden">
+    <div class="titlebar-drag">
+      <img src="assets/logo.svg" alt="" class="titlebar-icon">
+      <span class="titlebar-title">GitGuise</span>
+    </div>
+    <div class="titlebar-controls">
+      <button id="btn-minimize" class="titlebar-btn" title="Minimize"><i class="ti ti-minus"></i></button>
+      <button id="btn-maximize" class="titlebar-btn" title="Maximize"><i class="ti ti-square"></i></button>
+      <button id="btn-close" class="titlebar-btn titlebar-btn-close" title="Close"><i class="ti ti-x"></i></button>
+    </div>
+  </div>
+
+  <!-- Wizard -->
+  <div id="wizard" class="wizard hidden">
+    <div class="wizard-progress">
+      <div class="progress-bar">
+        <div id="progress-fill" class="progress-fill"></div>
+      </div>
+      <span id="progress-label" class="progress-label">Step 1 of 7</span>
+    </div>
+    <div class="wizard-steps" id="wizard-steps">
+      <!-- Steps injected by wizard.js -->
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard" class="dashboard hidden">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <img src="assets/logo.svg" alt="GitGuise" class="sidebar-logo">
+        <div class="sidebar-brand">
+          <span class="sidebar-name">GitGuise</span>
+          <span id="app-version" class="sidebar-version">v0.1.0</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav" id="sidebar-nav">
+        <button class="nav-item active" data-tab="dashboard"><i class="ti ti-layout-dashboard"></i> Dashboard</button>
+        <button class="nav-item" data-tab="profiles"><i class="ti ti-user-circle"></i> Profiles</button>
+        <button class="nav-item" data-tab="repos"><i class="ti ti-git-branch"></i> Repos</button>
+        <button class="nav-item" data-tab="settings"><i class="ti ti-settings"></i> Settings</button>
+        <button class="nav-item" data-tab="docs"><i class="ti ti-book"></i> Docs</button>
+      </nav>
+      <div class="sidebar-profiles" id="sidebar-profiles"></div>
+    </aside>
+    <main class="main-area">
+      <header class="topbar">
+        <h1 id="page-title" class="topbar-title">Dashboard</h1>
+      </header>
+      <div class="content" id="content">
+        <!-- Tab content injected by dashboard.js -->
+      </div>
+    </main>
+  </div>
+
+  <!-- Git Bash error -->
+  <div id="git-bash-error" class="git-bash-error hidden">
+    <div class="error-card">
+      <i class="ti ti-alert-triangle error-icon"></i>
+      <h2>Git Bash Not Found</h2>
+      <p>GitGuise requires Git for Windows to run shell commands.</p>
+      <a href="#" id="git-download-link" class="btn btn-primary">Download Git for Windows</a>
+    </div>
+  </div>
+
+  <!-- Modal container -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal" id="modal">
+      <div class="modal-header">
+        <h3 id="modal-title"></h3>
+        <button class="modal-close" id="modal-close"><i class="ti ti-x"></i></button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-footer" id="modal-footer"></div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/highlight.min.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/profiles.js"></script>
+  <script src="js/ssh.js"></script>
+  <script src="js/hooks.js"></script>
+  <script src="js/repos.js"></script>
+  <script src="js/wizard.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

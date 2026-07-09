@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Primary -->
+  <title>GitGuise — Git, without the identity crisis.</title>
+  <meta name="description" content="GitGuise automatically routes commits, pushes, and clones to the right GitHub account. Manage unlimited profiles with SSH keys, hooks, and shell wrappers — set up in minutes.">
+  <meta name="keywords" content="multiple github accounts, github profile switcher, git ssh multiple accounts, git identity manager, github work personal accounts, git account switcher, open source developer tools">
+  <meta name="author" content="Yash Purani">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://gitguise.dev">
+
+  <!-- Open Graph (Facebook, LinkedIn) -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gitguise.dev">
+  <meta property="og:title" content="GitGuise — Git, without the identity crisis.">
+  <meta property="og:description" content="Automatically route every commit and push to the right GitHub account. Personal, work, freelance — fully separated.">
+  <meta property="og:image" content="https://gitguise.dev/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:site_name" content="GitGuise">
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://gitguise.dev">
+  <meta name="twitter:title" content="GitGuise — Git, without the identity crisis.">
+  <meta name="twitter:description" content="Automatically route every commit and push to the right GitHub account. Open source. Free.">
+  <meta name="twitter:image" content="https://gitguise.dev/og-image.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/logo.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+  <!-- Theme -->
+  <meta name="theme-color" content="#0a0a0a">
+
+  <!-- Performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="dns-prefetch" href="https://api.github.com">
+  <link rel="dns-prefetch" href="https://github.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <link rel="stylesheet" href="styles.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "GitGuise",
+    "description": "Manage multiple GitHub accounts on one machine. GitGuise automatically routes commits, pushes, and clones to the right account.",
+    "url": "https://gitguise.dev",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Windows, macOS, Linux",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "author": {
+      "@type": "Person",
+      "name": "Yash Purani",
+      "url": "https://github.com/yash-js"
+    },
+    "license": "https://opensource.org/licenses/MIT",
+    "codeRepository": "https://github.com/yash-js/gitguise",
+    "softwareVersion": "0.1.0",
+    "downloadUrl": "https://github.com/yash-js/gitguise/releases"
+  }
+  </script>
+</head>
+<body>
+  <nav class="nav" aria-label="Main navigation">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo" aria-label="GitGuise — Git, without the identity crisis.">
+        <svg xmlns="http://www.w3.org/2000/svg" width="160" height="40" viewBox="0 0 160 40" aria-hidden="true" focusable="false">
+          <g transform="translate(20, 20)">
+            <rect x="-14" y="-10" width="28" height="20" rx="10" fill="#ffffff"/>
+            <ellipse cx="-5.5" cy="0" rx="5" ry="4" fill="#0a0a0a"/>
+            <ellipse cx="5.5" cy="0" rx="5" ry="4" fill="#0a0a0a"/>
+            <path d="M-3.5 10 L0 15.5 L3.5 10Z" fill="#ffffff"/>
+          </g>
+          <text x="44" y="25" font-family="Inter,'Helvetica Neue',Arial,sans-serif" font-size="18" font-weight="700" fill="#ffffff" letter-spacing="-0.5">GitGuise</text>
+        </svg>
+      </a>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="/docs/">Docs</a>
+        <a href="#download">Download</a>
+        <a href="https://github.com/yash-js/gitguise" class="github-link" target="_blank" rel="noopener">
+          GitHub
+          <span class="star-badge" id="star-count">★</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero" aria-label="Hero">
+      <div class="container">
+        <h1>Your identities.<br>Perfectly separated.</h1>
+        <p class="hero-sub">GitGuise automatically routes every commit, push, and clone<br>to the right GitHub account — personal, work, or freelance.</p>
+        <span class="version-badge">v0.1.0 — free &amp; open source</span>
+        <div class="hero-screenshot">
+          <img src="./public/screenshot.png" alt="GitGuise dashboard showing multiple GitHub profiles" width="1536" height="1024" loading="lazy">
+        </div>
+      </div>
+    </section>
+
+    <section class="problem" aria-labelledby="problem-heading">
+      <div class="container">
+        <h2 id="problem-heading">Sound familiar?</h2>
+        <div class="cards-grid three">
+          <div class="card">
+            <p>&ldquo;Committed as the wrong identity&rdquo;</p>
+          </div>
+          <div class="card">
+            <p>&ldquo;SSH setup from scratch on every new machine&rdquo;</p>
+          </div>
+          <div class="card">
+            <p>&ldquo;Manually switching emails before every project&rdquo;</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="features" id="features" aria-labelledby="features-heading">
+      <div class="container">
+        <h2 id="features-heading">Everything handled automatically</h2>
+        <div class="cards-grid">
+          <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">👤</div>
+            <h3>Unlimited profiles</h3>
+            <p>Add every identity you work under — no arbitrary limits</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">🧙</div>
+            <h3>Setup wizard</h3>
+            <p>SSH keys, config, and hooks — fully configured in minutes</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">🔄</div>
+            <h3>Auto-detect on push</h3>
+            <p>Reads your remote URL and pushes from the right account. Every time.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">📁</div>
+            <h3>Init prompt</h3>
+            <p>Every new repo gets assigned an identity before the first commit</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">🔍</div>
+            <h3>Repo scanner</h3>
+            <p>See every repo on your machine and exactly who it belongs to</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">⚡</div>
+            <h3>New machine in 2 min</h3>
+            <p>Export your entire setup. Import on a new machine. Done in 2 minutes.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="how-it-works" aria-labelledby="how-heading">
+      <div class="container">
+        <h2 id="how-heading">How it works</h2>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num" aria-hidden="true">1</div>
+            <h3>Add your profiles</h3>
+            <p>Name them, color-code them, connect them</p>
+          </div>
+          <div class="step">
+            <div class="step-num" aria-hidden="true">2</div>
+            <h3>Run the wizard</h3>
+            <p>GitGuise configures SSH, hooks, and shell wrappers automatically</p>
+          </div>
+          <div class="step">
+            <div class="step-num" aria-hidden="true">3</div>
+            <h3>Push freely</h3>
+            <p>The right identity is used automatically — you never think about it again</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="download-section" id="download" aria-labelledby="download-heading">
+      <div class="container">
+        <h2 id="download-heading">Download GitGuise</h2>
+        <p class="download-warning">This installer is not signed. You may see an antivirus warning, which you can safely ignore.</p>
+        <div class="platform-cards">
+          <div class="platform-card">
+            <div class="platform-icon" aria-label="Windows"><i class="fa-brands fa-windows" aria-hidden="true"></i></div>
+            <h3>Windows</h3>
+            <p class="platform-file">.exe installer</p>
+            <a href="#" class="download-btn" id="btn-windows-2">Download</a>
+          </div>
+          <div class="platform-card">
+            <div class="platform-icon" aria-label="macOS"><i class="fa-brands fa-apple" aria-hidden="true"></i></div>
+            <h3>macOS</h3>
+            <p class="platform-file">.dmg disk image</p>
+            <a href="#" class="download-btn" id="btn-mac-2">Download</a>
+          </div>
+          <div class="platform-card">
+            <div class="platform-icon" aria-label="Linux"><i class="fa-brands fa-linux" aria-hidden="true"></i></div>
+            <h3>Linux</h3>
+            <p class="platform-file">.AppImage</p>
+            <a href="#" class="download-btn" id="btn-linux-2">Download</a>
+          </div>
+        </div>
+        <p class="download-note">Requires Git installed on Windows, macOS, and Linux · Current version: <span class="version-badge">v0.1.0</span></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <svg class="footer-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" aria-hidden="true" focusable="false">
+          <g transform="translate(256, 240)">
+            <rect x="-120" y="-78" width="240" height="156" rx="78" fill="#f0f0f0"/>
+            <ellipse cx="-48" cy="0" rx="44" ry="34" fill="#0a0a0a"/>
+            <ellipse cx="48" cy="0" rx="44" ry="34" fill="#0a0a0a"/>
+            <path d="M-26 78 L0 118 L26 78Z" fill="#f0f0f0"/>
+          </g>
+        </svg>
+        <span>Git, without the identity crisis.</span>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/yash-js/gitguise" target="_blank" rel="noopener">GitHub</a>
+        <span aria-hidden="true">·</span>
+        <a href="https://github.com/yash-js/gitguise/issues" target="_blank" rel="noopener">Issues</a>
+        <span aria-hidden="true">·</span>
+        <a href="https://github.com/yash-js/gitguise/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
+        <span aria-hidden="true">·</span>
+        <a href="/docs/">Docs</a>
+      </div>
+      <p class="footer-credit">built by <a href="https://www.linkedin.com/in/yashpurani/" target="_blank" rel="noopener">Yash</a></p>
+    </div>
+  </footer>
+
+  <script src="script.js" defer></script>
+</body>
+</html>

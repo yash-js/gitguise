@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-app:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify package.json
+        run: node -e "const p=require('./package.json'); if(!p.version) throw new Error('missing version')"
+
+      - name: Verify main entry exists
+        run: test -f main.js && test -f preload.js
+
+      - name: Verify renderer assets
+        run: test -f src/index.html && test -f src/assets/logo.svg
+
+  validate-manifest-sync:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check version manifest matches app/package.json
+        run: |
+          MANIFEST_VERSION=$(node -p "require('./.github/.release-please-manifest.json').app")
+          PACKAGE_VERSION=$(node -p "require('./app/package.json').version")
+          if [ "$MANIFEST_VERSION" != "$PACKAGE_VERSION" ]; then
+            echo "::error::Version mismatch: manifest=$MANIFEST_VERSION package.json=$PACKAGE_VERSION"
+            echo "Release-please will sync these on the next release PR."
+            exit 1
+          fi
+
+  validate-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify landing page files
+        run: |
+          test -f web/index.html
+          test -f web/styles.css
+          test -f web/script.js
+          test -f web/public/logo.svg

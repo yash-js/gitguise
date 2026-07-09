@@ -1,0 +1,307 @@
+.wizard {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--bg);
+}
+
+body.has-titlebar .wizard {
+  height: calc(100vh - var(--titlebar-height));
+}
+
+.wizard-progress {
+  padding: 20px 48px 0;
+  flex-shrink: 0;
+}
+
+.progress-bar {
+  height: 4px;
+  background: var(--surface2);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--personal);
+  border-radius: 2px;
+  transition: width 200ms ease;
+  width: 14.28%;
+}
+
+.progress-label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.wizard-steps {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.wizard-step {
+  position: absolute;
+  inset: 0;
+  padding: 32px 48px 48px;
+  overflow-y: auto;
+  transition: transform 200ms ease, opacity 200ms ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.wizard-step.slide-out-left { transform: translateX(-100%); opacity: 0; }
+.wizard-step.slide-out-right { transform: translateX(100%); opacity: 0; }
+.wizard-step.slide-in-left { transform: translateX(-100%); }
+.wizard-step.slide-in-right { transform: translateX(100%); }
+.wizard-step.active { transform: translateX(0); opacity: 1; }
+
+.wizard-step-content {
+  flex: 1;
+  max-width: 640px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.wizard-step h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.wizard-step .subtext {
+  color: var(--text-muted);
+  margin-bottom: 32px;
+  line-height: 1.6;
+}
+
+.wizard-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 24px;
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
+/* Step 1 Welcome */
+.welcome-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 400px;
+}
+
+.welcome-logo { width: 80px; height: 80px; margin-bottom: 24px; }
+.welcome-step h1 { font-size: 36px; font-weight: 700; margin-bottom: 8px; }
+.welcome-tagline { font-size: 18px; color: var(--text-muted); margin-bottom: 24px; }
+.welcome-body { color: var(--text-muted); max-width: 400px; line-height: 1.6; margin-bottom: 32px; }
+
+/* Step 2 Profiles */
+.profile-rows { display: flex; flex-direction: column; gap: 16px; margin-bottom: 16px; }
+
+.wizard-step2-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.profile-row {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  position: relative;
+}
+
+.profile-row-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.profile-row .remove-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px;
+}
+.profile-row .remove-btn:hover { color: var(--danger); }
+
+.profile-row-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.profile-row-fields .form-group.full { grid-column: 1 / -1; }
+
+.label-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.label-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Step 3 SSH */
+.ssh-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.ssh-tab {
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 150ms;
+}
+
+.ssh-tab.active { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+.ssh-tab .tab-dot { width: 8px; height: 8px; border-radius: 50%; }
+.ssh-tab .tab-check { color: var(--success); font-size: 14px; }
+
+.ssh-panel { display: none; }
+.ssh-panel.active { display: block; }
+
+.ssh-section { margin-bottom: 20px; }
+.ssh-section h4 { font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-muted); }
+
+.key-textarea {
+  font-family: var(--mono);
+  font-size: 11px;
+  min-height: 80px;
+  resize: vertical;
+}
+
+.ssh-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.ssh-note { font-size: 12px; color: var(--text-dim); margin-top: 8px; }
+
+/* Step 4 SSH Config */
+.config-preview { margin-bottom: 20px; }
+.config-diff { margin-top: 16px; }
+.config-diff h4 { font-size: 13px; margin-bottom: 8px; color: var(--text-muted); }
+.diff-added { color: var(--success); }
+
+/* Step 5 Test */
+.test-cards { display: flex; flex-direction: column; gap: 16px; }
+
+.test-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.test-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.test-card-profile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.test-result {
+  margin-top: 12px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Step 6 Hooks */
+.hook-cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+
+.hook-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.hook-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.hook-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.hook-card p { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+.hook-file-note {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+  font-family: var(--mono);
+}
+
+/* Step 7 Done */
+.done-step {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.done-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 48px;
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+}
+
+.done-card h2 { margin-bottom: 24px; }
+
+.done-checklist {
+  text-align: left;
+  margin-bottom: 32px;
+}
+
+.done-checklist li {
+  list-style: none;
+  padding: 8px 0;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.done-checklist li i { color: var(--success); }

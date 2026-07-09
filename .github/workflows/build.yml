@@ -1,0 +1,197 @@
+name: Build & Release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Optional tag override (e.g. v0.1.0). Leave empty to build current ref.'
+        required: false
+
+concurrency:
+  group: build-${{ github.event_name == 'workflow_dispatch' && 'manual' || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - run: npm ci
+        working-directory: app
+
+      - name: Configure Windows code signing (optional)
+        shell: pwsh
+        working-directory: app
+        run: |
+          # If you add repo secrets:
+          # - WINDOWS_PFX_BASE64 (base64 of your .pfx)
+          # - WINDOWS_PFX_PASSWORD
+          # electron-builder will sign automatically via CSC_LINK/CSC_KEY_PASSWORD.
+          if ("${{ secrets.WINDOWS_PFX_BASE64 }}" -ne "") {
+            $pfxPath = Join-Path $env:RUNNER_TEMP "codesign.pfx"
+            [IO.File]::WriteAllBytes($pfxPath, [Convert]::FromBase64String("${{ secrets.WINDOWS_PFX_BASE64 }}"))
+            "CSC_LINK=$pfxPath" | Out-File -FilePath $env:GITHUB_ENV -Append
+            "CSC_KEY_PASSWORD=${{ secrets.WINDOWS_PFX_PASSWORD }}" | Out-File -FilePath $env:GITHUB_ENV -Append
+            Write-Host "Configured CSC_LINK for electron-builder."
+          } else {
+            Write-Host "No WINDOWS_PFX_BASE64 secret set; will self-sign output for integrity only."
+          }
+
+      - name: Build Windows (NSIS)
+        run: npm run build:win
+        working-directory: app
+
+      - name: Self-sign installer when no cert provided
+        if: ${{ secrets.WINDOWS_PFX_BASE64 == '' }}
+        shell: pwsh
+        working-directory: app
+        run: |
+          # Self-signing provides integrity, but Windows SmartScreen will still warn
+          # unless users trust the cert or you use a trusted CA (OV/EV) cert.
+          $cert = New-SelfSignedCertificate `
+            -Type CodeSigningCert `
+            -Subject "CN=GitGuise" `
+            -CertStoreLocation "Cert:\CurrentUser\My"
+
+          $exeFiles = Get-ChildItem "dist\*.exe" -File
+          if (-not $exeFiles.Count) { throw "No .exe outputs found to sign." }
+
+          foreach ($f in $exeFiles) {
+            & signtool sign /fd SHA256 /n "GitGuise" /sm /tr "http://timestamp.digicert.com" /td SHA256 "$($f.FullName)" 2>$null
+            if ($LASTEXITCODE -ne 0) {
+              # Fallback: no timestamp (works for self-signed)
+              & signtool sign /fd SHA256 /n "GitGuise" "$($f.FullName)"
+            }
+          }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-gitguise
+          path: app/dist/*.exe
+          if-no-files-found: error
+          retention-days: 30
+
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - run: npm ci
+        working-directory: app
+
+      - run: npm run build:mac
+        working-directory: app
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mac-gitguise
+          path: app/dist/*.dmg
+          if-no-files-found: error
+          retention-days: 30
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - run: npm ci
+        working-directory: app
+
+      - run: npm run build:linux
+        working-directory: app
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-gitguise
+          path: |
+            app/dist/*.AppImage
+            app/dist/*.deb
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    needs: [build-windows, build-mac, build-linux]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - uses: actions/download-artifact@v4
+
+      - name: Resolve release target
+        id: meta
+        run: |
+          if [ -n "${{ github.event.inputs.tag }}" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+            echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+            echo "name=GitGuise ${TAG}" >> "$GITHUB_OUTPUT"
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+            echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+            echo "name=GitGuise ${TAG}" >> "$GITHUB_OUTPUT"
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          else
+            VERSION=$(node -p "require('./app/package.json').version")
+            SHORT_SHA="${GITHUB_SHA::7}"
+            echo "tag=edge" >> "$GITHUB_OUTPUT"
+            echo "name=GitGuise v${VERSION} (edge-${SHORT_SHA})" >> "$GITHUB_OUTPUT"
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: ${{ steps.meta.outputs.name }}
+          prerelease: ${{ steps.meta.outputs.prerelease }}
+          body: |
+            Built from [`${{ github.sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
+
+            > ⚠️ **Windows SmartScreen / AV warning (unsigned builds)**  
+            > If this release is not signed with a trusted certificate, Windows may show an “Unknown publisher” / SmartScreen / antivirus warning.  
+            > This is expected for unsigned installers. You can verify the download by checking the hash and downloading from the official GitHub Releases page.
+
+            | Platform | File |
+            |---|---|
+            | Windows | `.exe` installer |
+            | macOS | `.dmg` disk image |
+            | Linux | `.AppImage` + `.deb` |
+          files: |
+            windows-gitguise/*
+            mac-gitguise/*
+            linux-gitguise/*
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
