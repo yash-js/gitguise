@@ -11,6 +11,7 @@ fetch('https://api.github.com/repos/yash-js/gitguise')
 fetch('https://api.github.com/repos/yash-js/gitguise/releases/latest')
   .then((r) => r.json())
   .then((release) => {
+    const releasesUrl = 'https://github.com/yash-js/gitguise/releases';
     const version = release?.tag_name;
     if (!version) return;
 
@@ -23,16 +24,30 @@ fetch('https://api.github.com/repos/yash-js/gitguise/releases/latest')
     release.assets.forEach((asset) => {
       if (asset.name.endsWith('.exe')) {
         const btn = document.getElementById('btn-windows-2');
-        if (btn) btn.href = asset.browser_download_url;
+        if (btn) {
+          btn.href = asset.browser_download_url;
+          btn.target = '_blank';
+        }
       }
       if (asset.name.endsWith('.dmg')) {
         const btn = document.getElementById('btn-mac-2');
-        if (btn) btn.href = asset.browser_download_url;
+        if (btn) {
+          btn.href = asset.browser_download_url;
+          btn.target = '_blank';
+        }
       }
       if (asset.name.endsWith('.AppImage')) {
         const btn = document.getElementById('btn-linux-2');
-        if (btn) btn.href = asset.browser_download_url;
+        if (btn) {
+          btn.href = asset.browser_download_url;
+          btn.target = '_blank';
+        }
       }
+    });
+
+    // If a release exists but doesn't have matching assets yet, never leave links as "#".
+    document.querySelectorAll('.download-btn').forEach((btn) => {
+      if (!btn.href || btn.getAttribute('href') === '#') btn.href = releasesUrl;
     });
 
     const ua = navigator.userAgent;
@@ -44,7 +59,10 @@ fetch('https://api.github.com/repos/yash-js/gitguise/releases/latest')
           ? 'btn-linux-2'
           : null;
     if (primaryId) {
-      document.getElementById(primaryId)?.classList.add('primary');
+      const el = document.getElementById(primaryId);
+      if (el && el.href && !el.href.endsWith('#') && el.href !== releasesUrl) {
+        el.classList.add('primary');
+      }
     }
   })
   .catch(() => {
