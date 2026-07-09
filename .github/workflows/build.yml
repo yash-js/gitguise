@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
     tags: ['v*']
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       tag:
@@ -17,10 +19,14 @@ concurrency:
 jobs:
   build-windows:
     runs-on: windows-latest
+    env:
+      BUILD_REF: ${{ github.event.inputs.tag || (github.event_name == 'release' && github.event.release.tag_name) || github.ref }}
+      WINDOWS_PFX_BASE64: ${{ secrets.WINDOWS_PFX_BASE64 }}
+      WINDOWS_PFX_PASSWORD: ${{ secrets.WINDOWS_PFX_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.tag || github.ref }}
+          ref: ${{ env.BUILD_REF }}
 
       - uses: actions/setup-node@v4
         with:
@@ -39,11 +45,11 @@ jobs:
           # - WINDOWS_PFX_BASE64 (base64 of your .pfx)
           # - WINDOWS_PFX_PASSWORD
           # electron-builder will sign automatically via CSC_LINK/CSC_KEY_PASSWORD.
-          if ("${{ secrets.WINDOWS_PFX_BASE64 }}" -ne "") {
+          if ($env:WINDOWS_PFX_BASE64 -ne "") {
             $pfxPath = Join-Path $env:RUNNER_TEMP "codesign.pfx"
-            [IO.File]::WriteAllBytes($pfxPath, [Convert]::FromBase64String("${{ secrets.WINDOWS_PFX_BASE64 }}"))
+            [IO.File]::WriteAllBytes($pfxPath, [Convert]::FromBase64String($env:WINDOWS_PFX_BASE64))
             "CSC_LINK=$pfxPath" | Out-File -FilePath $env:GITHUB_ENV -Append
-            "CSC_KEY_PASSWORD=${{ secrets.WINDOWS_PFX_PASSWORD }}" | Out-File -FilePath $env:GITHUB_ENV -Append
+            "CSC_KEY_PASSWORD=$env:WINDOWS_PFX_PASSWORD" | Out-File -FilePath $env:GITHUB_ENV -Append
             Write-Host "Configured CSC_LINK for electron-builder."
           } else {
             Write-Host "No WINDOWS_PFX_BASE64 secret set; will self-sign output for integrity only."
@@ -54,7 +60,7 @@ jobs:
         working-directory: app
 
       - name: Self-sign installer when no cert provided
-        if: ${{ !secrets.WINDOWS_PFX_BASE64 }}
+        if: ${{ env.WINDOWS_PFX_BASE64 == '' }}
         shell: pwsh
         working-directory: app
         run: |
@@ -85,10 +91,12 @@ jobs:
 
   build-mac:
     runs-on: macos-latest
+    env:
+      BUILD_REF: ${{ github.event.inputs.tag || (github.event_name == 'release' && github.event.release.tag_name) || github.ref }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.tag || github.ref }}
+          ref: ${{ env.BUILD_REF }}
 
       - uses: actions/setup-node@v4
         with:
@@ -111,10 +119,12 @@ jobs:
 
   build-linux:
     runs-on: ubuntu-latest
+    env:
+      BUILD_REF: ${{ github.event.inputs.tag || (github.event_name == 'release' && github.event.release.tag_name) || github.ref }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.tag || github.ref }}
+          ref: ${{ env.BUILD_REF }}
 
       - uses: actions/setup-node@v4
         with:
@@ -142,10 +152,12 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      BUILD_REF: ${{ github.event.inputs.tag || (github.event_name == 'release' && github.event.release.tag_name) || github.ref }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.tag || github.ref }}
+          ref: ${{ env.BUILD_REF }}
 
       - uses: actions/download-artifact@v4
 
@@ -154,6 +166,11 @@ jobs:
         run: |
           if [ -n "${{ github.event.inputs.tag }}" ]; then
             TAG="${{ github.event.inputs.tag }}"
+            echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+            echo "name=GitGuise ${TAG}" >> "$GITHUB_OUTPUT"
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "release" ]; then
+            TAG="${{ github.event.release.tag_name }}"
             echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
             echo "name=GitGuise ${TAG}" >> "$GITHUB_OUTPUT"
             echo "prerelease=false" >> "$GITHUB_OUTPUT"
