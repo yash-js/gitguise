@@ -8,10 +8,48 @@ fetch('https://api.github.com/repos/yash-js/gitguise')
   })
   .catch(() => {});
 
-fetch('https://api.github.com/repos/yash-js/gitguise/releases/latest')
-  .then((r) => r.json())
+const releasesUrl = 'https://github.com/yash-js/gitguise/releases';
+
+async function fetchJson(url) {
+  const r = await fetch(url, { headers: { Accept: 'application/vnd.github+json' } });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return await r.json();
+}
+
+function pickAssetUrl(assets, predicate) {
+  const a = (assets || []).find(predicate);
+  return a?.browser_download_url || '';
+}
+
+async function getBestReleaseForDownloads() {
+  // Prefer a release that actually has installer assets attached.
+  // Stable releases may exist without assets if build/upload is still running.
+  const candidates = [];
+  try {
+    candidates.push(await fetchJson('https://api.github.com/repos/yash-js/gitguise/releases/tags/edge'));
+  } catch {
+    /* ignore */
+  }
+  try {
+    candidates.push(await fetchJson('https://api.github.com/repos/yash-js/gitguise/releases/latest'));
+  } catch {
+    /* ignore */
+  }
+  for (const r of candidates) {
+    const assets = r?.assets || [];
+    const hasInstallers = assets.some((a) =>
+      a?.name?.endsWith('.exe') || a?.name?.endsWith('.dmg') || a?.name?.endsWith('.AppImage')
+    );
+    if (hasInstallers) return r;
+  }
+  // Fallback: if neither has installers, return the latest candidate (if any).
+  return candidates[0] || candidates[1] || null;
+}
+
+getBestReleaseForDownloads()
   .then((release) => {
-    const releasesUrl = 'https://github.com/yash-js/gitguise/releases';
+    if (!release) throw new Error('no release');
+
     const version = release?.tag_name;
     if (!version) return;
 
@@ -21,29 +59,27 @@ fetch('https://api.github.com/repos/yash-js/gitguise/releases/latest')
         : version;
     });
 
-    release.assets.forEach((asset) => {
-      if (asset.name.endsWith('.exe')) {
-        const btn = document.getElementById('btn-windows-2');
-        if (btn) {
-          btn.href = asset.browser_download_url;
-          btn.target = '_blank';
-        }
+    const windowsUrl = pickAssetUrl(release.assets, (a) => a?.name?.endsWith('.exe'));
+    const macUrl = pickAssetUrl(release.assets, (a) => a?.name?.endsWith('.dmg'));
+    const linuxUrl = pickAssetUrl(release.assets, (a) => a?.name?.endsWith('.AppImage'));
+
+    const setBtn = (id, url) => {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      if (url) {
+        btn.href = url;
+        btn.target = '_blank';
+        btn.rel = 'noopener';
+      } else {
+        btn.href = releasesUrl;
+        btn.removeAttribute('target');
+        btn.removeAttribute('rel');
       }
-      if (asset.name.endsWith('.dmg')) {
-        const btn = document.getElementById('btn-mac-2');
-        if (btn) {
-          btn.href = asset.browser_download_url;
-          btn.target = '_blank';
-        }
-      }
-      if (asset.name.endsWith('.AppImage')) {
-        const btn = document.getElementById('btn-linux-2');
-        if (btn) {
-          btn.href = asset.browser_download_url;
-          btn.target = '_blank';
-        }
-      }
-    });
+    };
+
+    setBtn('btn-windows-2', windowsUrl);
+    setBtn('btn-mac-2', macUrl);
+    setBtn('btn-linux-2', linuxUrl);
 
     // If a release exists but doesn't have matching assets yet, never leave links as "#".
     document.querySelectorAll('.download-btn').forEach((btn) => {
@@ -67,6 +103,6 @@ fetch('https://api.github.com/repos/yash-js/gitguise/releases/latest')
   })
   .catch(() => {
     document.querySelectorAll('.download-btn').forEach((btn) => {
-      btn.href = 'https://github.com/yash-js/gitguise/releases';
+      btn.href = releasesUrl;
     });
   });
