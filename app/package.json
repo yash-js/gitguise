@@ -3,6 +3,8 @@
   "productName": "GitGuise",
   "version": "0.2.0",
   "description": "One machine. Many identities.",
+  "author": "Yash Purani <yashpurani@users.noreply.github.com>",
+  "homepage": "https://gitguise.dev",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -35,7 +37,8 @@
         "deb"
       ],
       "icon": "src/assets/icon.png",
-      "category": "Development"
+      "category": "Development",
+      "maintainer": "Yash Purani <yashpurani@users.noreply.github.com>"
     }
   },
   "devDependencies": {

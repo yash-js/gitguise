@@ -64,6 +64,12 @@ jobs:
         shell: pwsh
         working-directory: app
         run: |
+          $signtool = Get-Command signtool -ErrorAction SilentlyContinue
+          if (-not $signtool) {
+            Write-Host "signtool not found on runner; skipping self-sign step."
+            exit 0
+          }
+
           # Self-signing provides integrity, but Windows SmartScreen will still warn
           # unless users trust the cert or you use a trusted CA (OV/EV) cert.
           $cert = New-SelfSignedCertificate `
@@ -75,10 +81,10 @@ jobs:
           if (-not $exeFiles.Count) { throw "No .exe outputs found to sign." }
 
           foreach ($f in $exeFiles) {
-            & signtool sign /fd SHA256 /n "GitGuise" /sm /tr "http://timestamp.digicert.com" /td SHA256 "$($f.FullName)" 2>$null
+            & $signtool.Source sign /fd SHA256 /n "GitGuise" /sm /tr "http://timestamp.digicert.com" /td SHA256 "$($f.FullName)" 2>$null
             if ($LASTEXITCODE -ne 0) {
               # Fallback: no timestamp (works for self-signed)
-              & signtool sign /fd SHA256 /n "GitGuise" "$($f.FullName)"
+              & $signtool.Source sign /fd SHA256 /n "GitGuise" "$($f.FullName)"
             }
           }
 
