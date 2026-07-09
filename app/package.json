@@ -1,7 +1,7 @@
 {
   "name": "gitguise",
   "productName": "GitGuise",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "One machine. Many identities.",
   "main": "main.js",
   "scripts": {
