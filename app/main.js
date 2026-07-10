@@ -6,10 +6,13 @@ const { spawn, execSync } = require('child_process');
 const Store = require('electron-store');
 const pty = require('node-pty');
 const { randomUUID } = require('crypto');
+const { autoUpdater } = require('electron-updater');
 const hooksLib = require('./lib/hooks');
 
 let mainWindow = null;
 const activePtys = new Map();
+
+const APP_ICON_PATH = path.join(__dirname, 'src', 'assets', 'icon.png');
 
 const store = new Store({
   defaults: {
@@ -374,6 +377,7 @@ function createWindow() {
 
   mainWindow = new BrowserWindow({
     title: 'GitGuise',
+    icon: isMac ? undefined : APP_ICON_PATH,
     width: 1200,
     height: 800,
     minWidth: 900,
@@ -394,6 +398,50 @@ function createWindow() {
   if (process.env.NODE_ENV === 'development') {
     mainWindow.webContents.openDevTools({ mode: 'detach' });
   }
+}
+
+function sendUpdateStatus(status, info) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('update:status', { status, info: info || null });
+  }
+}
+
+let updateSetupDone = false;
+
+function setupAutoUpdater() {
+  if (updateSetupDone) return;
+  updateSetupDone = true;
+
+  // Auto-update is only meaningful for packaged builds with an update feed
+  // (NSIS on Windows, AppImage on Linux, dmg/zip on macOS). The .deb target
+  // is updated via the system package manager instead.
+  if (!app.isPackaged) return;
+
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on('checking-for-update', () => sendUpdateStatus('checking'));
+  autoUpdater.on('update-available', (info) => sendUpdateStatus('available', info));
+  autoUpdater.on('update-not-available', (info) => sendUpdateStatus('not-available', info));
+  autoUpdater.on('error', (err) => sendUpdateStatus('error', { message: String(err?.message || err) }));
+  autoUpdater.on('download-progress', (p) => sendUpdateStatus('downloading', { percent: p?.percent || 0 }));
+  autoUpdater.on('update-downloaded', async (info) => {
+    sendUpdateStatus('downloaded', info);
+    const { response } = await dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      buttons: ['Restart now', 'Later'],
+      defaultId: 0,
+      cancelId: 1,
+      title: 'Update ready',
+      message: `GitGuise ${info?.version || ''} has been downloaded.`,
+      detail: 'Restart the app to finish installing the update.',
+    });
+    if (response === 0) autoUpdater.quitAndInstall();
+  });
+
+  autoUpdater.checkForUpdates().catch(() => {
+    /* offline / no feed — ignore */
+  });
 }
 
 function registerIpcHandlers() {
@@ -792,6 +840,16 @@ function registerIpcHandlers() {
 
   ipcMain.handle('app:get-version', () => app.getVersion());
 
+  ipcMain.handle('app:check-for-updates', async () => {
+    if (!app.isPackaged) return { supported: false, reason: 'dev' };
+    try {
+      const result = await autoUpdater.checkForUpdates();
+      return { supported: true, version: result?.updateInfo?.version || null };
+    } catch (e) {
+      return { supported: true, error: String(e?.message || e) };
+    }
+  });
+
   ipcMain.handle('app:export-config', async () => {
     const data = {
       profiles: store.get('profiles'),
@@ -955,6 +1013,7 @@ app.whenReady().then(() => {
 
   registerIpcHandlers();
   createWindow();
+  setupAutoUpdater();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

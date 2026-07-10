@@ -37,6 +37,15 @@ jobs:
       - run: npm ci
         working-directory: app
 
+      - name: Set build version
+        shell: bash
+        working-directory: app
+        run: |
+          BASE=$(node -p "require('./package.json').version.split('.').slice(0,2).join('.')")
+          VERSION="${BASE}.${{ github.run_number }}"
+          npm version "$VERSION" --no-git-tag-version --allow-same-version
+          echo "Building version $VERSION"
+
       - name: Configure Windows code signing (optional)
         shell: pwsh
         working-directory: app
@@ -91,7 +100,10 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: windows-gitguise
-          path: app/dist/*.exe
+          path: |
+            app/dist/*.exe
+            app/dist/*.blockmap
+            app/dist/latest.yml
           if-no-files-found: error
           retention-days: 30
 
@@ -113,13 +125,26 @@ jobs:
       - run: npm ci
         working-directory: app
 
+      - name: Set build version
+        shell: bash
+        working-directory: app
+        run: |
+          BASE=$(node -p "require('./package.json').version.split('.').slice(0,2).join('.')")
+          VERSION="${BASE}.${{ github.run_number }}"
+          npm version "$VERSION" --no-git-tag-version --allow-same-version
+          echo "Building version $VERSION"
+
       - run: npm run build:mac
         working-directory: app
 
       - uses: actions/upload-artifact@v4
         with:
           name: mac-gitguise
-          path: app/dist/*.dmg
+          path: |
+            app/dist/*.dmg
+            app/dist/*.zip
+            app/dist/*.blockmap
+            app/dist/latest-mac.yml
           if-no-files-found: error
           retention-days: 30
 
@@ -141,6 +166,15 @@ jobs:
       - run: npm ci
         working-directory: app
 
+      - name: Set build version
+        shell: bash
+        working-directory: app
+        run: |
+          BASE=$(node -p "require('./package.json').version.split('.').slice(0,2).join('.')")
+          VERSION="${BASE}.${{ github.run_number }}"
+          npm version "$VERSION" --no-git-tag-version --allow-same-version
+          echo "Building version $VERSION"
+
       - run: npm run build:linux
         working-directory: app
 
@@ -150,6 +184,8 @@ jobs:
           path: |
             app/dist/*.AppImage
             app/dist/*.deb
+            app/dist/*.blockmap
+            app/dist/latest-linux.yml
           if-no-files-found: error
           retention-days: 30
 
@@ -186,11 +222,11 @@ jobs:
             echo "name=GitGuise ${TAG}" >> "$GITHUB_OUTPUT"
             echo "prerelease=false" >> "$GITHUB_OUTPUT"
           else
-            VERSION=$(node -p "require('./app/package.json').version")
-            SHORT_SHA="${GITHUB_SHA::7}"
-            echo "tag=edge" >> "$GITHUB_OUTPUT"
-            echo "name=GitGuise v${VERSION} (edge-${SHORT_SHA})" >> "$GITHUB_OUTPUT"
-            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+            BASE=$(node -p "require('./app/package.json').version.split('.').slice(0,2).join('.')")
+            VERSION="${BASE}.${{ github.run_number }}"
+            echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "name=GitGuise v${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Upload release assets

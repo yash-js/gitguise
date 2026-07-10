@@ -37,22 +37,6 @@ jobs:
       - name: Verify renderer assets
         run: test -f src/index.html && test -f src/assets/logo.svg
 
-  validate-manifest-sync:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Check version manifest matches app/package.json
-        run: |
-          MANIFEST_VERSION=$(node -p "require('./.github/.release-please-manifest.json').app")
-          PACKAGE_VERSION=$(node -p "require('./app/package.json').version")
-          if [ "$MANIFEST_VERSION" != "$PACKAGE_VERSION" ]; then
-            echo "::error::Version mismatch: manifest=$MANIFEST_VERSION package.json=$PACKAGE_VERSION"
-            echo "Release-please will sync these on the next release PR."
-            exit 1
-          fi
-
   validate-web:
     runs-on: ubuntu-latest
     steps:

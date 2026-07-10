@@ -462,6 +462,13 @@ git config user.name</pre>
             `).join('')}
           </div>
         </div>
+        <div class="settings-row">
+          <div class="settings-row-label">
+            <h4>Updates</h4>
+            <p id="update-status">GitGuise updates automatically in the background</p>
+          </div>
+          <button class="btn" id="check-updates">Check for updates</button>
+        </div>
       </div>
 
       <div class="settings-section">
@@ -508,6 +515,28 @@ git config user.name</pre>
         await Store.set('settings', s);
         this.renderSettingsTab(container);
       });
+    });
+
+    document.getElementById('check-updates')?.addEventListener('click', async (e) => {
+      const btn = e.currentTarget;
+      const statusEl = document.getElementById('update-status');
+      btn.disabled = true;
+      btn.textContent = 'Checking…';
+      try {
+        const res = await window.gitguise.app.checkForUpdates();
+        if (statusEl) {
+          if (res?.supported === false) {
+            statusEl.textContent = 'Updates are only available in the installed app';
+          } else if (res?.error) {
+            statusEl.textContent = 'Could not check for updates right now';
+          } else {
+            statusEl.textContent = "You're on the latest version — new updates install automatically";
+          }
+        }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Check for updates';
+      }
     });
 
     document.getElementById('export-config')?.addEventListener('click', async () => {

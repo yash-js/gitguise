@@ -61,6 +61,12 @@ contextBridge.exposeInMainWorld('gitguise', {
     exportConfig: () => ipcRenderer.invoke('app:export-config'),
     importConfig: () => ipcRenderer.invoke('app:import-config'),
     getVersion: () => ipcRenderer.invoke('app:get-version'),
+    checkForUpdates: () => ipcRenderer.invoke('app:check-for-updates'),
+    onUpdateStatus: (cb) => {
+      const handler = (_, data) => cb(data);
+      ipcRenderer.on('update:status', handler);
+      return () => ipcRenderer.removeListener('update:status', handler);
+    },
   },
   window: {
     minimize: () => ipcRenderer.send('window:minimize'),

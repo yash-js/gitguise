@@ -8,10 +8,10 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build:win": "electron-builder --win",
-    "build:mac": "electron-builder --mac",
-    "build:linux": "electron-builder --linux",
-    "build:all": "electron-builder -mwl"
+    "build:win": "electron-builder --win --publish never",
+    "build:mac": "electron-builder --mac --publish never",
+    "build:linux": "electron-builder --linux --publish never",
+    "build:all": "electron-builder -mwl --publish never"
   },
   "build": {
     "appId": "app.gitguise",
@@ -19,16 +19,21 @@
     "directories": {
       "output": "dist"
     },
+    "publish": {
+      "provider": "github",
+      "owner": "yash-js",
+      "repo": "gitguise"
+    },
     "win": {
       "target": "nsis",
-      "icon": "src/assets/icon.ico"
+      "icon": "src/assets/icon.png"
     },
     "mac": {
       "target": [
         "dmg",
         "zip"
       ],
-      "icon": "src/assets/icon.icns",
+      "icon": "src/assets/icon.png",
       "category": "public.app-category.developer-tools"
     },
     "linux": {
@@ -47,6 +52,7 @@
   },
   "dependencies": {
     "electron-store": "^8.1.0",
+    "electron-updater": "^6.8.9",
     "highlight.js": "^11.9.0",
     "node-pty": "^1.0.0"
   }

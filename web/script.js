@@ -22,16 +22,18 @@ function pickAssetUrl(assets, predicate) {
 }
 
 async function getBestReleaseForDownloads() {
-  // Prefer a release that actually has installer assets attached.
-  // Stable releases may exist without assets if build/upload is still running.
+  // Every push publishes a new "latest" release with installer assets attached,
+  // so query the latest release first, then fall back to scanning recent releases
+  // in case the newest one's build/upload is still running.
   const candidates = [];
   try {
-    candidates.push(await fetchJson('https://api.github.com/repos/yash-js/gitguise/releases/tags/edge'));
+    candidates.push(await fetchJson('https://api.github.com/repos/yash-js/gitguise/releases/latest'));
   } catch {
     /* ignore */
   }
   try {
-    candidates.push(await fetchJson('https://api.github.com/repos/yash-js/gitguise/releases/latest'));
+    const recent = await fetchJson('https://api.github.com/repos/yash-js/gitguise/releases?per_page=10');
+    if (Array.isArray(recent)) candidates.push(...recent);
   } catch {
     /* ignore */
   }
@@ -45,8 +47,8 @@ async function getBestReleaseForDownloads() {
     );
     if (hasInstallers) return r;
   }
-  // Fallback: if neither has installers, return the latest candidate (if any).
-  return candidates[0] || candidates[1] || null;
+  // Fallback: return the latest candidate (if any), even without installers.
+  return candidates[0] || null;
 }
 
 function deriveDisplayVersion(release) {
