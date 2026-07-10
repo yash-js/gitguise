@@ -293,6 +293,44 @@ section h2 {
 
 .platform-card .download-btn { margin-top: auto; }
 
+.download-alt {
+  display: block;
+  margin-top: auto;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.download-alt:hover { color: var(--text); text-decoration: underline; }
+.download-alt[hidden] { display: none; }
+
+/* When the AppImage alt link is shown, it owns the auto spacing so the
+   Download button stays flush at the bottom, aligned with other cards. */
+.download-alt:not([hidden]) + .download-btn { margin-top: 0; }
+
+.platform-card { position: relative; }
+
+.platform-card.detected {
+  border-color: var(--green);
+  box-shadow: 0 0 0 1px var(--green);
+}
+
+.recommended-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--green);
+  background: rgba(22, 163, 74, 0.12);
+  border: 1px solid rgba(22, 163, 74, 0.35);
+  padding: 3px 8px;
+  border-radius: 99px;
+}
+
+.recommended-badge[hidden] { display: none; }
+
 .platform-card h3 {
   font-size: 18px;
   font-weight: 600;

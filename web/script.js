@@ -38,7 +38,10 @@ async function getBestReleaseForDownloads() {
   for (const r of candidates) {
     const assets = r?.assets || [];
     const hasInstallers = assets.some((a) =>
-      a?.name?.endsWith('.exe') || a?.name?.endsWith('.dmg') || a?.name?.endsWith('.AppImage')
+      a?.name?.endsWith('.exe') ||
+      a?.name?.endsWith('.dmg') ||
+      a?.name?.endsWith('.AppImage') ||
+      a?.name?.endsWith('.deb')
     );
     if (hasInstallers) return r;
   }
@@ -71,7 +74,10 @@ getBestReleaseForDownloads()
 
     const windowsUrl = pickAssetUrl(release.assets, (a) => a?.name?.endsWith('.exe'));
     const macUrl = pickAssetUrl(release.assets, (a) => a?.name?.endsWith('.dmg'));
-    const linuxUrl = pickAssetUrl(release.assets, (a) => a?.name?.endsWith('.AppImage'));
+    // Prefer .deb for Linux (more reliable on Ubuntu/Debian), fall back to AppImage.
+    const debUrl = pickAssetUrl(release.assets, (a) => a?.name?.endsWith('.deb'));
+    const appImageUrl = pickAssetUrl(release.assets, (a) => a?.name?.endsWith('.AppImage'));
+    const linuxUrl = debUrl || appImageUrl;
 
     const setBtn = (id, url) => {
       const btn = document.getElementById(id);
@@ -91,6 +97,19 @@ getBestReleaseForDownloads()
     setBtn('btn-mac-2', macUrl);
     setBtn('btn-linux-2', linuxUrl);
 
+    // Secondary Linux link (AppImage) when we defaulted the main button to .deb.
+    const linuxAlt = document.getElementById('btn-linux-appimage');
+    if (linuxAlt) {
+      if (debUrl && appImageUrl) {
+        linuxAlt.href = appImageUrl;
+        linuxAlt.target = '_blank';
+        linuxAlt.rel = 'noopener';
+        linuxAlt.hidden = false;
+      } else {
+        linuxAlt.hidden = true;
+      }
+    }
+
     // If a release exists but doesn't have matching assets yet, never leave links as "#".
     document.querySelectorAll('.download-btn').forEach((btn) => {
       if (!btn.href || btn.getAttribute('href') === '#') btn.href = releasesUrl;
@@ -101,3 +120,23 @@ getBestReleaseForDownloads()
       btn.href = releasesUrl;
     });
   });
+
+// Auto-detect the visitor's OS and highlight the matching platform card.
+(function highlightDetectedOS() {
+  const ua = navigator.userAgent || '';
+  const platform = navigator.platform || '';
+  const hint = `${ua} ${platform}`.toLowerCase();
+
+  let cardId = null;
+  if (/windows|win32|win64/.test(hint)) cardId = 'card-windows';
+  else if (/mac|iphone|ipad|ipod/.test(hint)) cardId = 'card-mac';
+  else if (/linux|x11|ubuntu|debian|fedora|cros/.test(hint)) cardId = 'card-linux';
+
+  if (!cardId) return;
+  const card = document.getElementById(cardId);
+  if (!card) return;
+
+  card.classList.add('detected');
+  const badge = card.querySelector('.recommended-badge');
+  if (badge) badge.hidden = false;
+})();
