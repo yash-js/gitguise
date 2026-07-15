@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GitGuise Docs — Terminal workflows</title>
-  <meta name="description" content="GitGuise documentation — terminal-first workflows after setup: SSH host aliases, hooks behavior, common git commands, and troubleshooting.">
+  <title>GitGuise Docs — Setup &amp; workflows</title>
+  <meta name="description" content="GitGuise documentation — set up profiles, assign existing repos in the app or terminal, SSH aliases, hooks, and troubleshooting.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -22,22 +22,29 @@
     .doc-card { border:1px solid var(--border); background: var(--surface); border-radius: 12px; padding: 18px; margin-bottom: 14px; }
     .doc-card h2 { text-align:left; margin:0 0 10px; font-size: 18px; }
     .doc-card p { color: var(--text-muted); margin-bottom: 10px; }
-    .doc-card ul { margin-left: 18px; color: var(--text-muted); }
+    .doc-card ul, .doc-card ol { margin-left: 18px; color: var(--text-muted); }
     .doc-card li { margin: 6px 0; }
+    .doc-card h3 { margin: 18px 0 8px; font-size: 15px; color: var(--text); }
+    .doc-card a { color: #7dd3a0; text-decoration: none; }
+    .doc-card a:hover { color: #a7f3c0; text-decoration: underline; }
     .kbd { font-family: 'JetBrains Mono', monospace; font-size: 12px; background:#0f0f0f; border:1px solid var(--border); padding: 2px 6px; border-radius: 6px; color: var(--text); }
-    .code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background:#0f0f0f; border:1px solid var(--border); padding: 10px 12px; border-radius: 10px; color: var(--text); overflow:auto; }
+    .code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background:#0f0f0f; border:1px solid var(--border); padding: 10px 12px; border-radius: 10px; color: var(--text); overflow:auto; white-space: pre-wrap; }
     .note { border-left: 3px solid var(--green); padding: 10px 12px; background:#0f1410; border-radius: 10px; color: var(--text-muted); }
     @media (max-width: 900px) { .doc-grid { grid-template-columns: 1fr; } .doc-nav { position: static; } }
   </style>
 </head>
 <body>
-  <nav class="nav">
+  <nav class="nav" aria-label="Main navigation">
     <div class="nav-inner">
-      <a href="/" class="nav-logo">
+      <a href="/" class="nav-logo" aria-label="GitGuise">
         <img src="../public/logo-navbar.svg" alt="GitGuise" height="40" />
       </a>
-      <div class="nav-links">
+      <button type="button" class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="nav-menu" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="nav-links" id="nav-menu">
         <a href="/#features">Features</a>
+        <a href="/docs/">Docs</a>
         <a href="/#download">Download</a>
         <a href="https://github.com/yash-js/gitguise" class="github-link" target="_blank" rel="noopener">GitHub</a>
       </div>
@@ -49,7 +56,7 @@
       <div class="doc-header">
         <div>
           <h1 class="doc-title">Docs</h1>
-          <p class="doc-sub">Terminal-first workflows after setup: SSH aliases, hooks, commands, and troubleshooting.</p>
+          <p class="doc-sub">Set up profiles, connect existing repos (app or terminal), SSH aliases, hooks, and troubleshooting.</p>
         </div>
         <a class="download-btn" href="/">← Back to home</a>
       </div>
@@ -60,7 +67,7 @@
           <a href="#add-profile">Add a profile</a>
           <a href="#ssh-aliases">SSH host aliases</a>
           <a href="#clone">Cloning repos (SSH)</a>
-          <a href="#existing-repos">Existing repos: check & fix remotes</a>
+          <a href="#existing-repos">Existing repos (app & terminal)</a>
           <a href="#push">Push flow (auto-detect)</a>
           <a href="#init-remote-add">git init & git remote add</a>
           <a href="#disable">Disable / remove hooks</a>
@@ -114,13 +121,39 @@
           </div>
 
           <div class="doc-card" id="existing-repos">
-            <h2>Existing repos: check & fix remotes</h2>
-            <p>Check what your repo is using:</p>
+            <h2>Existing repos (app &amp; terminal)</h2>
+            <p>Already cloned a repo with HTTPS, or the wrong SSH key? Assign a GitGuise profile so remotes and local git identity stay consistent.</p>
+            <div class="note">Prerequisites: at least one profile with an SSH key added to GitHub, and <span class="kbd">ssh -T git@&lt;alias&gt;</span> succeeds.</div>
+
+            <h3>Option A — App (best for many repos)</h3>
+            <ol>
+              <li>Open GitGuise → <strong>Repos</strong></li>
+              <li>Click <strong>Scan Folder</strong> and pick the parent folder that contains your projects</li>
+              <li>Find the repo (filter by <strong>Unknown</strong> if it’s not linked yet)</li>
+              <li>Click <strong>Switch Profile</strong> → choose the identity → confirm</li>
+            </ol>
+            <p>GitGuise will for that repo:</p>
+            <ul>
+              <li>Set local <span class="kbd">user.email</span> and <span class="kbd">user.name</span></li>
+              <li>Rewrite <span class="kbd">origin</span> to <span class="kbd">git@&lt;alias&gt;:OWNER/REPO.git</span></li>
+            </ul>
+            <p>Then verify in the card (or in a terminal):</p>
+            <div class="code">git remote get-url origin\n# should look like: git@github-work:OWNER/REPO.git</div>
+
+            <h3>Option B — Terminal (manual)</h3>
+            <p>Inside the repo, check what you’re on today:</p>
             <div class="code">git remote -v\ngit config user.email\ngit config user.name</div>
-            <p>Fix the remote to use an alias:</p>
+            <p>Point <span class="kbd">origin</span> at the profile alias (keep the real <span class="kbd">OWNER</span> — org or username):</p>
             <div class="code">git remote set-url origin git@github-work:OWNER/REPO.git</div>
-            <p>Set identity for that repo (local config):</p>
-            <div class="code">git config user.email \"yash@company.com\"\ngit config user.name \"your-github-username\"</div>
+            <p>Set the repo-local identity to match that profile:</p>
+            <div class="code">git config user.email \"you@company.com\"\ngit config user.name \"your-github-username\"</div>
+
+            <h3>Option C — Terminal (push hook)</h3>
+            <p>If <strong>Auto-detect on push</strong> is enabled in Settings → Hooks, you can fix an existing HTTPS/unknown remote by simply pushing:</p>
+            <div class="code">git push</div>
+            <p>When the remote isn’t a known alias, GitGuise opens an interactive selector in the terminal. Pick the profile — it sets local identity and rewrites <span class="kbd">origin</span> for you.</p>
+
+            <div class="note" style="margin-top:14px"><strong>Org / fork remotes:</strong> keep <span class="kbd">OWNER</span> as the org or upstream owner in the URL (e.g. <span class="kbd">git@github-work:acme/api.git</span>). Don’t force your personal username into the path unless the repo lives under your account.</div>
           </div>
 
           <div class="doc-card" id="push">
@@ -180,6 +213,11 @@
 
 <script>
   (function () {
+    // Stored as literal "\n" in markup — expand for readable code blocks
+    document.querySelectorAll('.code').forEach((el) => {
+      el.textContent = el.textContent.replace(/\\n/g, '\n');
+    });
+
     const nav = document.querySelector('.doc-nav');
     if (!nav) return;
     const links = Array.from(nav.querySelectorAll('a[href^="#"]'));
@@ -239,6 +277,19 @@
       if (id && document.getElementById(id)) setActive(id);
     });
     onScroll();
+  })();
+
+  (function setupNav() {
+    const toggle = document.getElementById('nav-toggle');
+    const menu = document.getElementById('nav-menu');
+    if (!toggle || !menu) return;
+    const setOpen = (open) => {
+      menu.classList.toggle('open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    };
+    toggle.addEventListener('click', () => setOpen(!menu.classList.contains('open')));
+    menu.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setOpen(false)));
   })();
 </script>
 </html>

@@ -1,12 +1,40 @@
+const starEl = document.getElementById('star-count');
+
 fetch('https://api.github.com/repos/yash-js/gitguise')
   .then((r) => r.json())
   .then((repo) => {
-    const starEl = document.getElementById('star-count');
-    if (starEl && repo.stargazers_count !== undefined) {
+    if (!starEl) return;
+    starEl.removeAttribute('aria-busy');
+    if (repo.stargazers_count !== undefined) {
       starEl.textContent = `★ ${repo.stargazers_count}`;
+      starEl.setAttribute('aria-label', `${repo.stargazers_count} stars`);
+    } else {
+      starEl.textContent = '★';
     }
   })
-  .catch(() => {});
+  .catch(() => {
+    if (!starEl) return;
+    starEl.removeAttribute('aria-busy');
+    starEl.textContent = '★';
+    starEl.setAttribute('aria-label', 'GitHub stars');
+  });
+
+(function setupNav() {
+  const toggle = document.getElementById('nav-toggle');
+  const menu = document.getElementById('nav-menu');
+  if (!toggle || !menu) return;
+
+  const setOpen = (open) => {
+    menu.classList.toggle('open', open);
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+  };
+
+  toggle.addEventListener('click', () => setOpen(!menu.classList.contains('open')));
+  menu.querySelectorAll('a').forEach((a) => {
+    a.addEventListener('click', () => setOpen(false));
+  });
+})();
 
 const releasesUrl = 'https://github.com/yash-js/gitguise/releases';
 
@@ -141,4 +169,36 @@ getBestReleaseForDownloads()
   card.classList.add('detected');
   const badge = card.querySelector('.recommended-badge');
   if (badge) badge.hidden = false;
+})();
+
+(function setupBuildCopy() {
+  const codeEl = document.querySelector('#build-commands code');
+  const btn = document.getElementById('copy-build-commands');
+  if (!codeEl) return;
+
+  const hint = `${navigator.userAgent || ''} ${navigator.platform || ''}`.toLowerCase();
+  let buildCmd = 'npm run build:win';
+  if (/mac|iphone|ipad|ipod/.test(hint)) buildCmd = 'npm run build:mac';
+  else if (/linux|x11|ubuntu|debian|fedora|cros/.test(hint)) buildCmd = 'npm run build:linux';
+
+  const commands = [
+    'git clone https://github.com/yash-js/gitguise.git',
+    'cd gitguise/app',
+    'npm install',
+    buildCmd,
+  ].join('\n');
+  codeEl.textContent = commands;
+
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(commands);
+      const prev = btn.textContent;
+      btn.textContent = 'Copied';
+      setTimeout(() => { btn.textContent = prev; }, 1600);
+    } catch {
+      btn.textContent = 'Copy failed';
+      setTimeout(() => { btn.textContent = 'Copy commands'; }, 1600);
+    }
+  });
 })();

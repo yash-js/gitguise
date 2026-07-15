@@ -54,8 +54,8 @@ const Dashboard = {
     container.innerHTML = `
       <div class="docs-page">
         <div class="docs-hero">
-          <h2>Terminal workflows</h2>
-          <p class="text-muted">GitGuise configures SSH aliases + optional git wrappers so you can use multiple GitHub identities from your normal terminal — without constantly changing <span class="kbd">user.email</span> or getting SSH keys mixed up.</p>
+          <h2>Setup &amp; workflows</h2>
+          <p class="text-muted">Assign profiles to existing repos in the app or terminal, use SSH aliases, and optional git wrappers — without constantly changing <span class="kbd">user.email</span> or mixing up SSH keys.</p>
         </div>
 
         <div class="docs-grid">
@@ -64,7 +64,7 @@ const Dashboard = {
             <a href="#docs-add">Add a profile</a>
             <a href="#docs-alias">SSH aliases (core idea)</a>
             <a href="#docs-clone">Clone the right way</a>
-            <a href="#docs-existing">Fix existing repos</a>
+            <a href="#docs-existing">Existing repos (app & terminal)</a>
             <a href="#docs-push">Push: auto-detect</a>
             <a href="#docs-init">New repo: init & remote add</a>
             <a href="#docs-verify">Verify everything works</a>
@@ -125,16 +125,35 @@ git@github-work:OWNER/REPO.git</pre>
             </section>
 
             <section class="docs-card" id="docs-existing">
-              <h3>Fix existing repos</h3>
-              <p class="text-muted">Inside any repo, check remote + identity:</p>
+              <h3>Existing repos (app &amp; terminal)</h3>
+              <p class="text-muted">Already cloned with HTTPS, or the wrong SSH key? Assign a profile so remotes and local identity stay consistent. Prerequisites: a profile with SSH on GitHub, and <span class="kbd">ssh -T git@&lt;alias&gt;</span> works.</p>
+
+              <p><strong>Option A — App (best for many repos)</strong></p>
+              <ol>
+                <li>Open the <strong>Repos</strong> tab</li>
+                <li>Click <strong>Scan Folder</strong> and pick the parent folder for your projects</li>
+                <li>Find the repo (filter <strong>Unknown</strong> if it isn’t linked yet)</li>
+                <li>Click <strong>Switch Profile</strong> → choose the identity → confirm</li>
+              </ol>
+              <p class="text-muted">GitGuise sets local <span class="kbd">user.email</span> / <span class="kbd">user.name</span> and rewrites <span class="kbd">origin</span> to <span class="kbd">git@&lt;alias&gt;:OWNER/REPO.git</span>.</p>
+              <pre class="code">git remote get-url origin
+# should look like: git@github-work:OWNER/REPO.git</pre>
+
+              <p><strong>Option B — Terminal (manual)</strong></p>
               <pre class="code">git remote -v
 git config user.email
-git config user.name</pre>
-              <p class="text-muted">If <span class="kbd">origin</span> is HTTPS, switch it to an alias:</p>
-              <pre class="code">git remote set-url origin git@github-work:OWNER/REPO.git</pre>
-              <p class="text-muted">Then set the repo identity (local config):</p>
-              <pre class="code">git config user.email "yash@company.com"
-git config user.name "Work"</pre>
+git config user.name
+
+git remote set-url origin git@github-work:OWNER/REPO.git
+git config user.email "you@company.com"
+git config user.name "your-github-username"</pre>
+              <p class="text-muted">Keep the real <span class="kbd">OWNER</span> (org or username) in the remote path.</p>
+
+              <p><strong>Option C — Terminal (push hook)</strong></p>
+              <p class="text-muted">With <strong>Auto-detect on push</strong> enabled, run <span class="kbd">git push</span> on an HTTPS/unknown remote. Pick a profile in the terminal selector — GitGuise updates local identity and rewrites <span class="kbd">origin</span>.</p>
+              <pre class="code">git push</pre>
+
+              <p class="text-muted"><strong>Org / fork remotes:</strong> keep <span class="kbd">OWNER</span> as the org or upstream owner (e.g. <span class="kbd">git@github-work:acme/api.git</span>). Don’t force your personal username into the path unless the repo lives under your account.</p>
             </section>
 
             <section class="docs-card" id="docs-push">

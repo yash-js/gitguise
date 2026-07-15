@@ -7,8 +7,8 @@
 
   <!-- Primary -->
   <title>GitGuise — Git, without the identity crisis.</title>
-  <meta name="description" content="GitGuise automatically routes commits, pushes, and clones to the right GitHub account. Manage unlimited profiles with SSH keys, hooks, and shell wrappers — set up in minutes.">
-  <meta name="keywords" content="multiple github accounts, github profile switcher, git ssh multiple accounts, git identity manager, github work personal accounts, git account switcher, open source developer tools">
+  <meta name="description" content="GitGuise automatically routes commits, pushes, and clones to the right GitHub account — more than gh auth switch or manual git config. Unlimited profiles, SSH, hooks. Free and open source.">
+  <meta name="keywords" content="multiple github accounts, github profile switcher, git ssh multiple accounts, git identity manager, github work personal accounts, git account switcher, gh auth switch alternative, open source developer tools">
   <meta name="author" content="Yash Purani">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://gitguise.dev">
@@ -17,7 +17,7 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://gitguise.dev">
   <meta property="og:title" content="GitGuise — Git, without the identity crisis.">
-  <meta property="og:description" content="Automatically route every commit and push to the right GitHub account. Personal, work, freelance — fully separated.">
+  <meta property="og:description" content="gh auth switch and shell scripts leave remotes and SSH easy to mix up. GitGuise keeps personal, work, and freelance identities fully separated.">
   <meta property="og:image" content="https://gitguise.dev/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -27,7 +27,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="https://gitguise.dev">
   <meta name="twitter:title" content="GitGuise — Git, without the identity crisis.">
-  <meta name="twitter:description" content="Automatically route every commit and push to the right GitHub account. Open source. Free.">
+  <meta name="twitter:description" content="More than gh auth switch — automatic SSH, remotes, and identity routing. Open source. Free.">
   <meta name="twitter:image" content="https://gitguise.dev/og-image.png">
 
   <!-- Favicon -->
@@ -44,7 +44,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="dns-prefetch" href="https://api.github.com">
   <link rel="dns-prefetch" href="https://github.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
   <link rel="stylesheet" href="styles.css">
 
@@ -53,7 +53,7 @@
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "GitGuise",
-    "description": "Manage multiple GitHub accounts on one machine. GitGuise automatically routes commits, pushes, and clones to the right account.",
+    "description": "Manage multiple GitHub accounts on one machine. More than gh auth switch — GitGuise automatically routes commits, pushes, and clones with SSH, hooks, and profiles.",
     "url": "https://gitguise.dev",
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Windows, macOS, Linux",
@@ -88,13 +88,18 @@
           <text x="44" y="25" font-family="Inter,'Helvetica Neue',Arial,sans-serif" font-size="18" font-weight="700" fill="#ffffff" letter-spacing="-0.5">GitGuise</text>
         </svg>
       </a>
-      <div class="nav-links">
+      <button type="button" class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="nav-menu" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="nav-links" id="nav-menu">
         <a href="#features">Features</a>
         <a href="/docs/">Docs</a>
         <a href="#download">Download</a>
         <a href="https://github.com/yash-js/gitguise" class="github-link" target="_blank" rel="noopener">
           GitHub
-          <span class="star-badge" id="star-count">★</span>
+          <span class="star-badge" id="star-count" aria-busy="true" aria-label="Loading stars">
+            <span class="star-spinner" aria-hidden="true"></span>
+          </span>
         </a>
       </div>
     </div>
@@ -104,7 +109,7 @@
     <section class="hero" aria-label="Hero">
       <div class="container">
         <h1>Your identities.<br>Perfectly separated.</h1>
-        <p class="hero-sub">GitGuise automatically routes every commit, push, and clone<br>to the right GitHub account — personal, work, or freelance.</p>
+        <p class="hero-sub">The right identity is used automatically — you never think about it again.</p>
         <span class="version-badge">free &amp; open source</span>
         <div class="hero-screenshot">
           <img src="./public/screenshot.png" alt="GitGuise dashboard showing multiple GitHub profiles" width="1536" height="1024" loading="lazy">
@@ -117,13 +122,13 @@
         <h2 id="problem-heading">Sound familiar?</h2>
         <div class="cards-grid three">
           <div class="card">
-            <p>&ldquo;Committed as the wrong identity&rdquo;</p>
+            <p>Repository not found — on a repo you own</p>
           </div>
           <div class="card">
-            <p>&ldquo;SSH setup from scratch on every new machine&rdquo;</p>
+            <p>Wrong key, failed clone, five commands to fix it</p>
           </div>
           <div class="card">
-            <p>&ldquo;Manually switching emails before every project&rdquo;</p>
+            <p>New machine. The whole SSH setup, from scratch, again</p>
           </div>
         </div>
       </div>
@@ -134,34 +139,61 @@
         <h2 id="features-heading">Everything handled automatically</h2>
         <div class="cards-grid">
           <div class="feature-card">
-            <div class="feature-icon" aria-hidden="true">👤</div>
+            <div class="feature-icon" aria-hidden="true"><i class="fa-solid fa-user"></i></div>
             <h3>Unlimited profiles</h3>
             <p>Add every identity you work under — no arbitrary limits</p>
           </div>
           <div class="feature-card">
-            <div class="feature-icon" aria-hidden="true">🧙</div>
+            <div class="feature-icon" aria-hidden="true"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
             <h3>Setup wizard</h3>
             <p>SSH keys, config, and hooks — fully configured in minutes</p>
           </div>
           <div class="feature-card">
-            <div class="feature-icon" aria-hidden="true">🔄</div>
+            <div class="feature-icon" aria-hidden="true"><i class="fa-solid fa-arrows-rotate"></i></div>
             <h3>Auto-detect on push</h3>
             <p>Reads your remote URL and pushes from the right account. Every time.</p>
           </div>
           <div class="feature-card">
-            <div class="feature-icon" aria-hidden="true">📁</div>
-            <h3>Init prompt</h3>
-            <p>Every new repo gets assigned an identity before the first commit</p>
+            <div class="feature-icon" aria-hidden="true"><i class="fa-solid fa-code-branch"></i></div>
+            <h3>Every new repo gets an identity</h3>
+            <p>Pick a profile at init — before the first commit lands under the wrong account</p>
           </div>
           <div class="feature-card">
-            <div class="feature-icon" aria-hidden="true">🔍</div>
+            <div class="feature-icon" aria-hidden="true"><i class="fa-solid fa-magnifying-glass"></i></div>
             <h3>Repo scanner</h3>
             <p>See every repo on your machine and exactly who it belongs to</p>
           </div>
           <div class="feature-card">
-            <div class="feature-icon" aria-hidden="true">⚡</div>
+            <div class="feature-icon" aria-hidden="true"><i class="fa-solid fa-bolt"></i></div>
             <h3>New machine in 2 min</h3>
             <p>Export your entire setup. Import on a new machine. Done in 2 minutes.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="compare" aria-labelledby="compare-heading">
+      <div class="container">
+        <h2 id="compare-heading">Workarounds vs GitGuise</h2>
+        <p class="compare-lead">Other tools help with pieces of the problem. GitGuise handles all of it — key, remote, and commit identity — from the remote URL.</p>
+        <div class="compare-grid">
+          <div class="compare-col compare-them">
+            <h3>Typical workarounds</h3>
+            <ul>
+              <li><strong>includeIf</strong> — identity by folder path; clone into the wrong directory and it silently doesn’t apply</li>
+              <li><strong>gh auth switch</strong> — swaps GitHub auth, not remotes, SSH aliases, or repo-local git config</li>
+              <li><strong>Manual git config</strong> — easy to forget right before a commit on a private repo</li>
+              <li><strong>Custom shell scripts</strong> — personal and fragile; hard to share or move to a new machine</li>
+            </ul>
+          </div>
+          <div class="compare-col compare-us">
+            <h3>What GitGuise does</h3>
+            <ul>
+              <li><strong>From the remote</strong> — picks key, remote alias, and commit identity from the URL, not the folder you’re in</li>
+              <li><strong>SSH + hooks + wrappers</strong> — configured once, then used by normal <code>git</code> commands</li>
+              <li><strong>Existing repos</strong> — assign an identity in the app or fix remotes from the terminal</li>
+              <li><strong>Cross-platform</strong> — Windows, macOS, Linux · export/import for a new machine in minutes</li>
+            </ul>
           </div>
         </div>
       </div>
@@ -217,6 +249,15 @@
           <a href="https://github.com/yash-js/gitguise/releases" class="download-alt" id="btn-linux-appimage" target="_blank" rel="noopener" hidden>or .AppImage</a>
           <a href="https://github.com/yash-js/gitguise/releases" class="download-btn" id="btn-linux-2">Download</a>
           </div>
+        </div>
+        <div class="build-from-source">
+          <p class="build-lead">Or clone and build for your machine</p>
+          <pre class="build-code" id="build-commands"><code>git clone https://github.com/yash-js/gitguise.git
+cd gitguise/app
+npm install
+npm run build:win</code></pre>
+          <p class="build-hint">Requires <strong>Node.js</strong> (LTS) and <strong>Git</strong>. Output ends up in <code>app/dist/</code>. Other platforms: <code>build:mac</code>, <code>build:linux</code>.</p>
+          <button type="button" class="build-copy" id="copy-build-commands">Copy commands</button>
         </div>
         <p class="download-note">Requires Git installed on Windows, macOS, and Linux · Current version: <span class="version-badge">v0.1.0</span></p>
       </div>
