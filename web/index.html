@@ -225,7 +225,7 @@
     <section class="download-section" id="download" aria-labelledby="download-heading">
       <div class="container">
         <h2 id="download-heading">Download GitGuise</h2>
-        <p class="download-warning">This installer is not signed. You may see an antivirus warning, which you can safely ignore.</p>
+        <p class="download-warning"><strong>Windows SmartScreen note</strong>: Since the app is not signed, Windows might show a "Windows protected your PC" warning. To install, click <strong>More info</strong> and then <strong>Run anyway</strong>. The app is completely safe and open source.</p>
         <div class="platform-cards">
           <div class="platform-card" id="card-windows">
             <span class="recommended-badge" hidden>Recommended for you</span>
@@ -289,6 +289,36 @@ npm run build:win</code></pre>
       <p class="footer-credit">built by <a href="https://www.linkedin.com/in/yashpurani/" target="_blank" rel="noopener">Yash</a></p>
     </div>
   </footer>
+
+  <!-- Windows SmartScreen Instruction Modal -->
+  <div id="download-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <button class="modal-close" id="modal-close" aria-label="Close modal">&times;</button>
+      <div class="modal-header">
+        <div class="modal-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <h3 id="modal-title">Windows SmartScreen Note</h3>
+      </div>
+      <div class="modal-body">
+        <p>Since the installer is unsigned, Windows Defender SmartScreen might block it with a <strong>"Windows protected your PC"</strong> message.</p>
+        
+        <div class="modal-steps-guide">
+          <div class="modal-step-item">
+            <span class="step-badge">1</span>
+            <span>Click <strong>"More info"</strong> on the blue dialog.</span>
+          </div>
+          <div class="modal-step-item">
+            <span class="step-badge">2</span>
+            <span>Click the <strong>"Run anyway"</strong> button to launch the installer.</span>
+          </div>
+        </div>
+
+        <p class="modal-safe-note">The application is completely safe, free, and open source.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" id="modal-continue-btn">Got it</button>
+      </div>
+    </div>
+  </div>
 
   <script src="script.js" defer></script>
 </body>

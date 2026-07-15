@@ -14,7 +14,7 @@ GitGuise handles SSH keys, config, and hooks automatically.
 
 → [gitguise.dev](https://gitguise.dev) or [GitHub Releases](https://github.com/yash-js/gitguise/releases)
 
-> **Windows note**: GitGuise releases may be **unsigned**. If so, Windows SmartScreen or antivirus tools can show an “Unknown publisher” / warning dialog. This is expected for unsigned installers—download only from official GitHub Releases.
+> **Windows note**: GitGuise releases are **unsigned**. If so, Windows SmartScreen will show a “Windows protected your PC” warning dialog. Click **“More info”** and then **“Run anyway”** to install. Only download from official GitHub Releases.
 
 ## Features
 - Add unlimited profiles (personal, work, freelance)

@@ -202,3 +202,37 @@ getBestReleaseForDownloads()
     }
   });
 })();
+
+(function setupDownloadModal() {
+  const btnWin = document.getElementById('btn-windows-2');
+  const modal = document.getElementById('download-modal');
+  const closeBtn = document.getElementById('modal-close');
+  const continueBtn = document.getElementById('modal-continue-btn');
+
+  if (!btnWin || !modal) return;
+
+  btnWin.addEventListener('click', () => {
+    modal.classList.add('open');
+    modal.removeAttribute('aria-hidden');
+  });
+
+  const closeModal = () => {
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+  };
+
+  closeBtn?.addEventListener('click', closeModal);
+  continueBtn?.addEventListener('click', closeModal);
+
+  // Close on overlay click
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('open')) {
+      closeModal();
+    }
+  });
+})();

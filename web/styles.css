@@ -689,3 +689,179 @@ section h2 {
   section { padding: 48px 0; }
   .compare-lead { margin-top: -16px; }
 }
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 300ms ease;
+}
+
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Modal Content Box */
+.modal {
+  background: #121212;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  width: 90%;
+  max-width: 480px;
+  padding: 32px;
+  position: relative;
+  transform: translateY(20px);
+  transition: transform 300ms ease;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
+.modal-overlay.open .modal {
+  transform: translateY(0);
+}
+
+/* Close Button */
+.modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 24px;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 150ms, color 150ms;
+}
+
+.modal-close:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* Modal Header */
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.modal-icon {
+  font-size: 20px;
+  color: #eab308; /* Yellow caution color */
+  background: rgba(234, 179, 8, 0.1);
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(234, 179, 8, 0.2);
+}
+
+.modal-header h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+/* Modal Body */
+.modal-body {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.modal-body p {
+  margin-bottom: 16px;
+}
+
+.modal-steps-guide {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.modal-step-item strong {
+  color: #fff;
+}
+
+.step-badge {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  font-weight: 700;
+  font-size: 11px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.modal-safe-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center !important;
+  margin-top: 8px;
+}
+
+/* Modal Footer */
+.modal-footer {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.modal-footer .btn-primary {
+  background: var(--text);
+  color: var(--bg);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: opacity 150ms;
+  width: 100%;
+}
+
+.modal-footer .btn-primary:hover {
+  opacity: 0.9;
+}
+

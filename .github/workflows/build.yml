@@ -238,9 +238,9 @@ jobs:
           body: |
             Built from [`${{ github.sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
 
-            > ⚠️ **Windows SmartScreen / AV warning (unsigned builds)**  
-            > If this release is not signed with a trusted certificate, Windows may show an “Unknown publisher” / SmartScreen / antivirus warning.  
-            > This is expected for unsigned installers. You can verify the download by checking the hash and downloading from the official GitHub Releases page.
+            > ⚠️ **Windows SmartScreen warning (unsigned builds)**  
+            > Since the app is not signed, Windows might show a "Windows protected your PC" warning. To install, click **"More info"** and then **"Run anyway"**.
+            > The app is completely safe and open source. You can verify the download by checking the hash.
 
             | Platform | File |
             |---|---|
