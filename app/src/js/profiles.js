@@ -115,8 +115,8 @@ const Profiles = {
     const body = document.createElement('div');
     body.innerHTML = `
       <p style="color:var(--text-muted);margin-bottom:12px">
-        GitGuise generated an SSH key for <strong>${escapeHtml(profile.displayName)}</strong>
-        and copied it to your clipboard. Pick where to add it, then follow the steps.
+        GitGuise generated an SSH key for <strong>${escapeHtml(profile.displayName)}</strong>.
+        Copy it, add it to your provider, then press Done.
       </p>
 
       <div class="provider-select" id="provider-select">
@@ -143,10 +143,32 @@ const Profiles = {
       body,
       footer: `
         <button class="btn btn-ghost" id="addkey-copy">Copy key</button>
-        <button class="btn" id="addkey-done">Done</button>
+        <button class="btn" id="addkey-done" disabled title="Copy the key before closing">Done</button>
         <button class="btn btn-primary" id="addkey-open">Open →</button>
       `,
     });
+
+    let keyCopied = false;
+    const doneBtn = document.getElementById('addkey-done');
+    const copyBtn = document.getElementById('addkey-copy');
+    const closeBtn = document.getElementById('modal-close');
+    const overlay = document.getElementById('modal-overlay');
+
+    const allowClose = () => keyCopied;
+
+    const tryClose = () => {
+      if (!allowClose()) {
+        showToast('Copy the key first', 'error');
+        return;
+      }
+      modal.close();
+    };
+
+    // Block X and backdrop until the key is explicitly copied.
+    closeBtn.onclick = tryClose;
+    overlay.onclick = (e) => {
+      if (e.target === overlay) tryClose();
+    };
 
     const trigger = body.querySelector('#provider-trigger');
     const menu = body.querySelector('#provider-menu');
@@ -161,7 +183,7 @@ const Profiles = {
       instructions.innerHTML = `
         <ol class="addkey-steps">
           <li>Open the <a href="#" class="provider-link">${escapeHtml(prov.name)} SSH keys page</a> (<span class="kbd">${escapeHtml(prov.path)}</span>)</li>
-          <li>Give it a title (e.g. <strong>${escapeHtml(profile.displayName)}</strong>) and paste the key — it's already copied</li>
+          <li>Give it a title (e.g. <strong>${escapeHtml(profile.displayName)}</strong>) and paste the key — copy it first with <strong>Copy key</strong></li>
           <li>Save it, then verify from your terminal:</li>
         </ol>
         <pre class="code">ssh -T git@${prov.host}</pre>
@@ -187,12 +209,16 @@ const Profiles = {
       };
     });
 
-    document.getElementById('addkey-copy').onclick = async () => {
+    copyBtn.onclick = async () => {
       await window.gitguise.app.copyToClipboard(publicKey);
+      keyCopied = true;
+      doneBtn.disabled = false;
+      doneBtn.removeAttribute('title');
+      copyBtn.textContent = 'Copied';
       showToast('Public key copied', 'success');
     };
     openBtn.onclick = () => window.gitguise.app.openUrl(providers[current].keysUrl);
-    document.getElementById('addkey-done').onclick = () => modal.close();
+    doneBtn.onclick = tryClose;
   },
 
   showFormModal(profile = null, onSave) {
